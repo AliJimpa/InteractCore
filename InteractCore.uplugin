@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "InteractCore",
+	"Description": "A minimal Unreal Engine plugin for implement interaction system to your TPS/FPS game fast & simple (network-ready).",
+	"Category": "Gameplay",
+	"CreatedBy": "Alijimpa",
+	"CreatedByURL": "https://alibadpa.weebly.com/",
+	"DocsURL": "https://github.com/AliJimpa/InteractCore",
+	"MarketplaceURL": "",
+	"SupportURL": "alibadpa007@gmail.com",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "InteractCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "EnhancedInput",
+			"Enabled": true
+		}
+	]
+}
