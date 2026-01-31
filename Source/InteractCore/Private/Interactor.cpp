@@ -33,6 +33,7 @@ void UInteractor::BeginPlay()
 				LOG_WARNING("Pawn has no PlayerController yet");
 				return;
 			}
+
 			UEnhancedInputComponent *EIC = Cast<UEnhancedInputComponent>(PC->InputComponent);
 			if (!EIC)
 			{
@@ -40,11 +41,19 @@ void UInteractor::BeginPlay()
 				return;
 			}
 
-			EIC->BindAction(InputAction, ETriggerEvent::Triggered, this, &UInteractor::OnTriggered);
-			EIC->BindAction(InputAction, ETriggerEvent::Started, this, &UInteractor::OnStarted);
-			EIC->BindAction(InputAction, ETriggerEvent::Ongoing, this, &UInteractor::OnOngoing);
-			EIC->BindAction(InputAction, ETriggerEvent::Canceled, this, &UInteractor::OnCanceled);
-			EIC->BindAction(InputAction, ETriggerEvent::Completed, this, &UInteractor::OnCompleted);
+			if (InputAction != nullptr)
+			{
+				EIC->BindAction(InputAction, ETriggerEvent::Triggered, this, &UInteractor::OnTriggered);
+				EIC->BindAction(InputAction, ETriggerEvent::Started, this, &UInteractor::OnStarted);
+				EIC->BindAction(InputAction, ETriggerEvent::Ongoing, this, &UInteractor::OnOngoing);
+				EIC->BindAction(InputAction, ETriggerEvent::Canceled, this, &UInteractor::OnCanceled);
+				EIC->BindAction(InputAction, ETriggerEvent::Completed, this, &UInteractor::OnCompleted);
+			}
+			else
+			{
+				LOG_ERROR("Interaction InputAction is not valid !");
+				return;
+			}
 		}
 	}
 	else
@@ -65,10 +74,40 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	// ...
 	if (!CanUpdateInteraction())
 	{
+		CheckUnhoverStage();
 		return;
 	}
 
-	// DetectedInteractables.Reset();
+	// Reset
+	for (FInteractTickRecord &Record : DetectionData)
+	{
+		Record.active = false;
+	}
+
+	if (!TryDetectStage(DetectionData))
+	{
+		LOG_ERROR("DetectStage Failed!");
+		return;
+	}
+
+	if (!DoesAnyRecordDetect(DetectionData))
+	{
+		CheckUnhoverStage();
+		return;
+	}
+
+
+	CompaireRecords(DetectionData , HoverData);
+
+
+	if (!TrySortStage(DetectionData))
+	{
+		LOG_ERROR("TrySort Failed!");
+		return;
+	}
+
+	CheckHoverStage(DetectionData);
+
 	// TArray<FHitResult> Hits = DetectInteractables(DetectedInteractables);
 	// if (DetectedInteractables.IsEmpty())
 	// {
