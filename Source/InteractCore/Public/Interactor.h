@@ -27,7 +27,7 @@ enum class EInteractorMode : uint8
 };
 
 UCLASS(Abstract)
-class INTERACTCORE_API UInteractor : public UActorComponent
+class INTERACTCORE_API UInteractor : public UBaseInteractor
 {
 	GENERATED_BODY()
 
@@ -39,13 +39,6 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	AController *ResolveControllerFromOwnership() const;
-	void OnTriggered(const FInputActionInstance &Instance);
-	void OnStarted(const FInputActionInstance &Instance);
-	void OnOngoing(const FInputActionInstance &Instance);
-	void OnCanceled(const FInputActionInstance &Instance);
-	void OnCompleted(const FInputActionInstance &Instance);
 
 public:
 	// Called every frame
@@ -130,8 +123,8 @@ protected:
 	// TArray<TScriptInterface<IInteractable>> HoverdInteractables;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Input")
-	UInputAction *InputAction;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Input")
+	// UInputAction *InputAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Setting")
 	EInteractorMode HoverMode;
 	UPROPERTY(EditAnywhere, Category = "Interactor|Selection", meta = (EditCondition = "HoverMode == EInteractorMode::Single", EditConditionHides))

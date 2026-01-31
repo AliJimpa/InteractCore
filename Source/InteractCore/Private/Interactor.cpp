@@ -22,44 +22,6 @@ void UInteractor::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-
-	if (AController *Controller = ResolveControllerFromOwnership())
-	{
-		if (Controller->IsLocalController())
-		{
-			APlayerController *PC = Cast<APlayerController>(Controller);
-			if (!PC)
-			{
-				LOG_WARNING("Pawn has no PlayerController yet");
-				return;
-			}
-
-			UEnhancedInputComponent *EIC = Cast<UEnhancedInputComponent>(PC->InputComponent);
-			if (!EIC)
-			{
-				LOG_WARNING("No EnhancedInputComponent on PlayerController");
-				return;
-			}
-
-			if (InputAction != nullptr)
-			{
-				EIC->BindAction(InputAction, ETriggerEvent::Triggered, this, &UInteractor::OnTriggered);
-				EIC->BindAction(InputAction, ETriggerEvent::Started, this, &UInteractor::OnStarted);
-				EIC->BindAction(InputAction, ETriggerEvent::Ongoing, this, &UInteractor::OnOngoing);
-				EIC->BindAction(InputAction, ETriggerEvent::Canceled, this, &UInteractor::OnCanceled);
-				EIC->BindAction(InputAction, ETriggerEvent::Completed, this, &UInteractor::OnCompleted);
-			}
-			else
-			{
-				LOG_ERROR("Interaction InputAction is not valid !");
-				return;
-			}
-		}
-	}
-	else
-	{
-		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
-	}
 }
 void UInteractor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -139,49 +101,7 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	// }
 }
 
-AController *UInteractor::ResolveControllerFromOwnership() const
-{
-	AActor *Owner = GetOwner();
 
-	int32 Depth = 0;
-	while (Owner)
-	{
-		if (APawn *Pawn = Cast<APawn>(Owner))
-		{
-			return Pawn->GetController();
-		}
-
-		if (AController *Controller = Cast<AController>(Owner))
-		{
-			return Controller;
-		}
-
-		LOG("[%d] %s", Depth++, *Owner->GetName());
-		Owner = Owner->GetOwner();
-	}
-
-	return nullptr;
-}
-void UInteractor::OnTriggered(const FInputActionInstance &Instance)
-{
-	InputBP(0);
-}
-void UInteractor::OnStarted(const FInputActionInstance &Instance)
-{
-	InputBP(1);
-}
-void UInteractor::OnOngoing(const FInputActionInstance &Instance)
-{
-	InputBP(2);
-}
-void UInteractor::OnCanceled(const FInputActionInstance &Instance)
-{
-	InputBP(3);
-}
-void UInteractor::OnCompleted(const FInputActionInstance &Instance)
-{
-	InputBP(4);
-}
 
 // bool UInteractor::CanUpdateInteraction_Implementation() const
 // {
