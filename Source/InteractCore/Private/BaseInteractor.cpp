@@ -40,17 +40,17 @@ void UBaseInteractor::BeginPlay()
 				return;
 			}
 
-			if (InputAction != nullptr)
+			if (InteractionInput != nullptr)
 			{
-				EIC->BindAction(InputAction, ETriggerEvent::Triggered, this, &UInteractor::OnTriggered);
-				EIC->BindAction(InputAction, ETriggerEvent::Started, this, &UInteractor::OnStarted);
-				EIC->BindAction(InputAction, ETriggerEvent::Ongoing, this, &UInteractor::OnOngoing);
-				EIC->BindAction(InputAction, ETriggerEvent::Canceled, this, &UInteractor::OnCanceled);
-				EIC->BindAction(InputAction, ETriggerEvent::Completed, this, &UInteractor::OnCompleted);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Triggered, this, &UInteractor::OnInteractInput_Triggered);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Started, this, &UInteractor::OnInteractInput_Started);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Ongoing, this, &UInteractor::OnInteractInput_Ongoing);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Canceled, this, &UInteractor::OnInteractInput_Canceled);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Completed, this, &UInteractor::OnInteractInput_Completed);
 			}
 			else
 			{
-				LOG_ERROR("Interaction InputAction is not valid !");
+				LOG_ERROR("Interaction InteractionInput is not valid !");
 				return;
 			}
 		}
@@ -67,6 +67,39 @@ void UBaseInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	if (!CanUpdateInteraction())
+	{
+		CheckUnhoverStage();
+		return;
+	}
+
+	// Reset
+	for (FInteractTickRecord &Record : DetectionData)
+	{
+		Record.active = false;
+	}
+
+	if (!TryDetectStage(DetectionData))
+	{
+		LOG_ERROR("DetectStage Failed!");
+		return;
+	}
+
+	if (!DoesAnyRecordDetect(DetectionData))
+	{
+		CheckUnhoverStage();
+		return;
+	}
+
+	CompaireRecords(DetectionData, HoverData);
+
+	if (!TrySortStage(DetectionData))
+	{
+		LOG_ERROR("TrySort Failed!");
+		return;
+	}
+
+	CheckHoverStage(DetectionData);
 }
 
 AController *UBaseInteractor::ResolveControllerFromOwnership() const
@@ -92,23 +125,24 @@ AController *UBaseInteractor::ResolveControllerFromOwnership() const
 
 	return nullptr;
 }
-void UBaseInteractor::OnTriggered(const FInputActionInstance &Instance)
+
+void UBaseInteractor::OnInteractInput_Triggered(const FInputActionInstance &Instance)
 {
-	OnInteractionCalled(ETriggerEvent::Triggered);
+	OnInteractTrigger(ETriggerEvent::Triggered);
 }
-void UBaseInteractor::OnStarted(const FInputActionInstance &Instance)
+void UBaseInteractor::OnInteractInput_Started(const FInputActionInstance &Instance)
 {
-	OnInteractionCalled(ETriggerEvent::Started);
+	OnInteractTrigger(ETriggerEvent::Started);
 }
-void UBaseInteractor::OnOngoing(const FInputActionInstance &Instance)
+void UBaseInteractor::OnInteractInput_Ongoing(const FInputActionInstance &Instance)
 {
-	OnInteractionCalled(ETriggerEvent::Ongoing);
+	OnInteractTrigger(ETriggerEvent::Ongoing);
 }
-void UBaseInteractor::OnCanceled(const FInputActionInstance &Instance)
+void UBaseInteractor::OnInteractInput_Canceled(const FInputActionInstance &Instance)
 {
-	OnInteractionCalled(ETriggerEvent::Canceled);
+	OnInteractTrigger(ETriggerEvent::Canceled);
 }
-void UBaseInteractor::OnCompleted(const FInputActionInstance &Instance)
+void UBaseInteractor::OnInteractInput_Completed(const FInputActionInstance &Instance)
 {
-	OnInteractionCalled(ETriggerEvent::Completed);
+	OnInteractTrigger(ETriggerEvent::Completed);
 }

@@ -1,10 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Interactor.h"
-#include "InteractDebug.h"
-#include "EnhancedInputComponent.h"
-#include "GameFramework/PlayerController.h"
-#include "Interactable.h"
 
 // Sets default values for this component's properties
 UInteractor::UInteractor()
@@ -23,10 +19,7 @@ void UInteractor::BeginPlay()
 
 	// ...
 }
-void UInteractor::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
+
 
 // Called every frame
 void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
@@ -34,41 +27,6 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
-	if (!CanUpdateInteraction())
-	{
-		CheckUnhoverStage();
-		return;
-	}
-
-	// Reset
-	for (FInteractTickRecord &Record : DetectionData)
-	{
-		Record.active = false;
-	}
-
-	if (!TryDetectStage(DetectionData))
-	{
-		LOG_ERROR("DetectStage Failed!");
-		return;
-	}
-
-	if (!DoesAnyRecordDetect(DetectionData))
-	{
-		CheckUnhoverStage();
-		return;
-	}
-
-
-	CompaireRecords(DetectionData , HoverData);
-
-
-	if (!TrySortStage(DetectionData))
-	{
-		LOG_ERROR("TrySort Failed!");
-		return;
-	}
-
-	CheckHoverStage(DetectionData);
 
 	// TArray<FHitResult> Hits = DetectInteractables(DetectedInteractables);
 	// if (DetectedInteractables.IsEmpty())
