@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [1.2.0] - 2026-05-13
+### Added
+- User authentication
+- Dark mode support
+
+### Fixed
+- Login redirect bug
+- Mobile layout issues
+
+### Changed
+- Improved API performance
+
+---
+
+## [1.1.0] - 2026-04-20
+### Added
+- Export to PDF feature
+
+### Fixed
+- Crash when uploading large files
