@@ -7,10 +7,136 @@
 #include "InteractDebug.h"
 #include "InteractorN.generated.h"
 
-USTRUCT(BlueprintType)
+// The total value can allocate in stack for usein this component
+#define MAXHITS 5
+
+UENUM()
+enum class EInteractionSearchMode : uint8
+{
+	ActorOnly UMETA(
+		DisplayName = "Actor Only",
+		ToolTip = "Only checks the hit Actor for the interaction interface."),
+
+	ComponentOnly UMETA(
+		DisplayName = "Component Only",
+		ToolTip = "Only checks the hit Components for the interaction interface."),
+
+	ActorAndComponent UMETA(
+		DisplayName = "Actor And Component",
+		ToolTip = "Checks both the hit Actor and its Components for the interaction interface."),
+
+	PreferActorFallbackToComponent UMETA(
+		DisplayName = "Prefer Actor, Fallback To Component",
+		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
+};
+
 struct FInteractionRecord
 {
+private:
+	FHitResult Hit;
+	TScriptInterface<IInteractable> Interface;
+
+	FORCEINLINE void SetInterface(UObject *Obj)
+	{
+		if (!Obj)
+			return;
+
+		Interface.SetObject(Obj);
+		Interface.SetInterface(Cast<IInteractable>(Obj));
+	}
+
+public:
+	FORCEINLINE void SetHit(const FHitResult &InHit)
+	{
+		Hit = InHit;
+		Interface = nullptr;
+	}
+
+	FORCEINLINE TScriptInterface<IInteractable> GetInterface(EInteractionSearchMode Mode)
+	{
+		if (Interface)
+		{
+			return Interface;
+		}
+
+		AActor *HitActor = Hit.GetActor();
+		UActorComponent *HitComp = Hit.GetComponent();
+
+		if (!HitActor && !HitComp)
+		{
+			return nullptr;
+		}
+
+		switch (Mode)
+		{
+		case EInteractionSearchMode::ActorOnly:
+		{
+			if (HitActor && HitActor->Implements<UInteractable>())
+			{
+				SetInterface(HitActor);
+			}
+			break;
+		}
+
+		case EInteractionSearchMode::ComponentOnly:
+		{
+			if (HitComp && HitComp->Implements<UInteractable>())
+			{
+				SetInterface(HitComp);
+			}
+			break;
+		}
+
+		case EInteractionSearchMode::ActorAndComponent:
+		{
+			if (HitActor && HitActor->Implements<UInteractable>())
+			{
+				SetInterface(HitActor);
+			}
+			else if (HitComp && HitComp->Implements<UInteractable>())
+			{
+				SetInterface(HitComp);
+			}
+			break;
+		}
+
+		case EInteractionSearchMode::PreferActorFallbackToComponent:
+		{
+			if (HitActor && HitActor->Implements<UInteractable>())
+			{
+				SetInterface(HitActor);
+				break;
+			}
+
+			if (HitActor)
+			{
+				TArray<UActorComponent *> Components =
+					HitActor->GetComponentsByInterface(UInteractable::StaticClass());
+
+				if (Components.Num() > 0)
+				{
+					SetInterface(Components[0]);
+				}
+			}
+			break;
+		}
+		}
+
+		return Interface;
+	}
+
+	FORCEINLINE bool IsValid(EInteractionSearchMode Mode)
+	{
+		return GetInterface(Mode) != nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FInteractionData
+{
 	GENERATED_BODY()
+
+	TStaticArray<FInteractionRecord, MAXHITS> Data;
 
 	UPROPERTY()
 	FHitResult Hit;
@@ -49,7 +175,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	virtual void DoSomething() PURE_VIRTUAL(UInteractorN::DoSomething, );
+	virtual bool PerformTrace(FInteractionData &DetectionData) PURE_VIRTUAL(UInteractorN::PerformTrace, return false;);
 
 public:
 	// Called every frame
@@ -57,11 +183,12 @@ public:
 
 private:
 	bool bHasBPTrace = false;
-	FInteractionRecord CurrentDetectionData;
-	FInteractionRecord ActiveHoverData;
-	bool PerformTrace(FInteractionRecord &DetectionData);
-	bool EvaluateTraceHits(const FInteractionRecord &DetectionData, FInteractionRecord HoverData);
-	int ChooseInteractionTarget(const FInteractionRecord &HoverData);
+	FInteractionData CurrentDetectionData;
+	FInteractionData ActiveHoverData;
+	EInteractionSearchMode DetectionMode;
+
+	bool EvaluateTraceHits(const FInteractionData &DetectionData, FInteractionData HoverData);
+	int ChooseInteractionTarget(const FInteractionData &HoverData);
 	void UpdateHoveredActors()
 	{
 		// if(CanHover())
@@ -73,13 +200,14 @@ private:
 	{
 		///
 	}
+	int GetMax() { return MAXHITS; }
 
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	static void AddHIT(UPARAM(ref) FInteractionRecord &Buffer, const FHitResult hit)
+	static void AddHIT(UPARAM(ref) FInteractionData &Buffer, const FHitResult hit)
 	{
 		Buffer.SetHit(hit);
 	}
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	bool DoTrace(const FInteractionRecord &Data);
+	bool DoTrace(const FInteractionData &Data);
 };

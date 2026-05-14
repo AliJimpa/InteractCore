@@ -173,7 +173,7 @@ bool UInteractor::CanUpdateInteraction(bool UseInput) const
 }
 void UInteractor::CheckUnhoverStage(FInteractionBuffer &Buffer)
 {
-	for (FInteractionData &Element : HoverData)
+	for (FInteractionData2 &Element : HoverData)
 	{
 		if (!Element.active)
 		{
@@ -185,7 +185,7 @@ void UInteractor::CheckUnhoverStage(FInteractionBuffer &Buffer)
 }
 void UInteractor::CheckHoverStage(FInteractionBuffer &Buffer)
 {
-	for (FInteractionData &Detection : DetectionData)
+	for (FInteractionData2 &Detection : DetectionData)
 	{
 		if (!Detection.active)
 		{

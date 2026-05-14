@@ -11,11 +11,10 @@ class UInputAction;
 class IInteractable;
 enum class ETriggerEvent : uint8;
 
-
 // The total value can allocate in stack for usein this component
 #define MAXHITS 5
 
-struct FInteractionData
+struct FInteractionData2
 {
 	bool active = false;
 	FHitResult HitData;
@@ -24,7 +23,9 @@ struct FInteractionData
 struct FInteractionBuffer
 {
 private:
-	TStaticArray<FInteractionData, MAXHITS> Data;
+	// TScriptInterface<IInteractable> Interface;
+	// bool bIsHovered = false;
+	TStaticArray<FInteractionData2, MAXHITS> Data;
 	int32 AvailableCount = MAXHITS;
 
 public:
@@ -51,21 +52,21 @@ public:
 	}
 
 	/** Read-only access */
-	FORCEINLINE const FInteractionData &operator[](int32 Index) const
+	FORCEINLINE const FInteractionData2 &operator[](int32 Index) const
 	{
 		check(Index >= 0 && Index < AvailableCount);
 		return Data[Index];
 	}
 
 	/** Mutable access */
-	FORCEINLINE FInteractionData &operator[](int32 Index)
+	FORCEINLINE FInteractionData2 &operator[](int32 Index)
 	{
 		check(Index >= 0 && Index < AvailableCount);
 		return Data[Index];
 	}
 
 	/** Add element, returns false if buffer is full */
-	// FORCEINLINE bool Add(const FInteractionData &Item)
+	// FORCEINLINE bool Add(const FInteractionData2 &Item)
 	// {
 	// 	if (IsFull())
 	// 	{
@@ -77,7 +78,7 @@ public:
 	// }
 
 	/** Emplace-like add */
-	// FORCEINLINE FInteractionData &AddDefaulted()
+	// FORCEINLINE FInteractionData2 &AddDefaulted()
 	// {
 	// 	check(!IsFull());
 	// 	return Data[NumElements++];
@@ -102,22 +103,22 @@ public:
 	// }
 
 	/** Pointer access (for ranged-for compatibility) */
-	FORCEINLINE FInteractionData *GetData()
+	FORCEINLINE FInteractionData2 *GetData()
 	{
 		return Data.GetData();
 	}
 
-	FORCEINLINE const FInteractionData *GetData() const
+	FORCEINLINE const FInteractionData2 *GetData() const
 	{
 		return Data.GetData();
 	}
 
 	/** Range-for support */
-	FORCEINLINE FInteractionData *begin() { return Data.GetData(); }
-	FORCEINLINE FInteractionData *end() { return Data.GetData() + AvailableCount; }
+	FORCEINLINE FInteractionData2 *begin() { return Data.GetData(); }
+	FORCEINLINE FInteractionData2 *end() { return Data.GetData() + AvailableCount; }
 
-	FORCEINLINE const FInteractionData *begin() const { return Data.GetData(); }
-	FORCEINLINE const FInteractionData *end() const { return Data.GetData() + AvailableCount; }
+	FORCEINLINE const FInteractionData2 *begin() const { return Data.GetData(); }
+	FORCEINLINE const FInteractionData2 *end() const { return Data.GetData() + AvailableCount; }
 };
 
 UCLASS(Abstract)
@@ -213,9 +214,9 @@ protected:
 	// UFUNCTION()
 	// virtual bool TryDetectStage(FInteractionBuffer &InOutHits) PURE_VIRTUAL(UInteractor::TryDetectStage, return false;);
 	// UFUNCTION()
-	void Hover(FInteractionData record) {};
+	void Hover(FInteractionData2 record) {};
 	// UFUNCTION()
-	void Unhover(FInteractionData record)
+	void Unhover(FInteractionData2 record)
 	{
 		record.active = false;
 	};
@@ -224,7 +225,7 @@ protected:
 	{
 
 		bool bMatchFound = false;
-		for (const FInteractionData &Hover : HoverHit)
+		for (const FInteractionData2 &Hover : HoverHit)
 		{
 			if (!Hover.active)
 			{
@@ -234,7 +235,7 @@ protected:
 			AActor *HoverActor = Hover.HitData.GetActor();
 			bMatchFound = false;
 
-			for (FInteractionData &Detection : DetectHit)
+			for (FInteractionData2 &Detection : DetectHit)
 			{
 				if (!Detection.active)
 				{
