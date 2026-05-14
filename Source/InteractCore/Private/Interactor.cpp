@@ -1,6 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Interactor.h"
+#include "InteractDebug.h"
+#include "EnhancedInputComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Interactable.h"
+#include "EnhancedPlayerInput.h"
 
 // Sets default values for this component's properties
 UInteractor::UInteractor()
@@ -18,8 +23,44 @@ void UInteractor::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-}
+	if (AController *Controller = ResolveControllerFromOwnership())
+	{
+		if (Controller->IsLocalController())
+		{
+			APlayerController *PC = Cast<APlayerController>(Controller);
+			if (!PC)
+			{
+				LOG_WARNING("Pawn has no PlayerController yet");
+				return;
+			}
 
+			UEnhancedInputComponent *EIC = Cast<UEnhancedInputComponent>(PC->InputComponent);
+			if (!EIC)
+			{
+				LOG_WARNING("No EnhancedInputComponent on PlayerController");
+				return;
+			}
+
+			if (InteractionInput != nullptr)
+			{
+				EIC->BindAction(InteractionInput, ETriggerEvent::Triggered, this, &UInteractor::OnInteractInput_Triggered);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Started, this, &UInteractor::OnInteractInput_Started);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Ongoing, this, &UInteractor::OnInteractInput_Ongoing);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Canceled, this, &UInteractor::OnInteractInput_Canceled);
+				EIC->BindAction(InteractionInput, ETriggerEvent::Completed, this, &UInteractor::OnInteractInput_Completed);
+			}
+			else
+			{
+				LOG_ERROR("InteractionInput is not valid!");
+				return;
+			}
+		}
+	}
+	else
+	{
+		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
+	}
+}
 
 // Called every frame
 void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
@@ -27,63 +68,176 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	if (!CanUpdateInteraction(HoverInput != nullptr))
+	{
+		CheckUnhoverStage(HoverData);
+		return;
+	}
 
-	// TArray<FHitResult> Hits = DetectInteractables(DetectedInteractables);
-	// if (DetectedInteractables.IsEmpty())
-	// {
-	// 	// LOG("List is Empty");
-	// 	return;
-	// }
-	// if (!FilterHoverInteractables(DetectedInteractables))
-	// {
-	// 	LOG_ERROR("FilterHoverInteractables Failed!");
-	// 	return;
-	// }
+	// Reset
+	for (int32 i = 0; i < DetectionData.Num(); ++i)
+	{
+		DetectionData[i].active = false;
+	}
 
-	// HoverdInteractables.Reset();
-	// for (const TScriptInterface<IInteractable> &Interactable : DetectedInteractables)
-	// {
-	// 	UObject *Obj = Interactable.GetObject();
-	// 	if (Obj != nullptr)
-	// 	{
-	// 		if (IInteractable::Execute_CanHover(Obj))
-	// 		{
-	// 			IInteractable::Execute_Hover(Obj, this, FHitResult::FHitResult());
-	// 			HoverdInteractables.Add(Interactable);
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		LOG_WARNING("Find invalid Interactable in Detection List");
-	// 	}
-	// }
+	if (!DetectionStage(DetectionData))
+	{
+		return;
+	}
+
+	if (!HasAnyActive(DetectionData))
+	{
+		CheckUnhoverStage(HoverData);
+		return;
+	}
+
+	CompaireRecords(DetectionData, HoverData);
+
+	if (!TrySortStage(DetectionData))
+	{
+		LOG_ERROR("TrySort Failed!");
+		return;
+	}
+
+	CheckHoverStage(DetectionData);
 }
 
+// Get owner control with trace ownership
+AController *UInteractor::ResolveControllerFromOwnership() const
+{
+	AActor *Owner = GetOwner();
 
+	int32 Depth = 0;
+	while (Owner)
+	{
+		if (APawn *Pawn = Cast<APawn>(Owner))
+		{
+			return Pawn->GetController();
+		}
 
-// bool UInteractor::CanUpdateInteraction_Implementation() const
-// {
-// 	return true;
-// }
-// TArray<FHitResult> UInteractor::DetectInteractables_Implementation(TArray<TScriptInterface<IInteractable>> &Interactables)
-// {
-// 	// if (!OtherActor)
-// 	// 	return;
+		if (AController *Controller = Cast<AController>(Owner))
+		{
+			return Controller;
+		}
 
-// 	// if (OtherActor->GetClass()->ImplementsInterface(UWeightInterace::StaticClass()))
-// 	// {
-// 	// 	// Call the BlueprintNativeEvent
-// 	// 	float TargetWeight = IWeightInterace::Execute_GetWeight(OtherActor);
-// 	// 	SetTotalWeight(TotalWeight + TargetWeight);
-// 	// }
+		LOG("[%d] %s", Depth++, *Owner->GetName());
+		Owner = Owner->GetOwner();
+	}
 
-// 	// if (CheckWight())
-// 	// {
-// 	// 	SetEnablePlate(true);
-// 	// }
-// 	return {};
-// }
-// bool UInteractor::FilterHoverInteractables_Implementation(TArray<TScriptInterface<IInteractable>> &Interactables)
-// {
-// 	return true;
-// }
+	return nullptr;
+}
+
+// Binding methods for interactionInput
+void UInteractor::OnInteractInput_Triggered(const FInputActionInstance &Instance)
+{
+	OnInteractTrigger(Instance, ETriggerEvent::Triggered);
+}
+void UInteractor::OnInteractInput_Started(const FInputActionInstance &Instance)
+{
+	OnInteractTrigger(Instance, ETriggerEvent::Started);
+}
+void UInteractor::OnInteractInput_Ongoing(const FInputActionInstance &Instance)
+{
+	OnInteractTrigger(Instance, ETriggerEvent::Ongoing);
+}
+void UInteractor::OnInteractInput_Canceled(const FInputActionInstance &Instance)
+{
+	OnInteractTrigger(Instance, ETriggerEvent::Canceled);
+}
+void UInteractor::OnInteractInput_Completed(const FInputActionInstance &Instance)
+{
+	OnInteractTrigger(Instance, ETriggerEvent::Completed);
+}
+
+void UInteractor::OnInteractTrigger(const FInputActionInstance &Instance, ETriggerEvent TriggerMode)
+{
+}
+
+bool UInteractor::CanUpdateInteraction(bool UseInput) const
+{
+	// flip flop logic
+
+	if (UseInput)
+	{
+		if (HoverInput != nullptr)
+		{
+			return IsHoverInputPressed();
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+void UInteractor::CheckUnhoverStage(FInteractionBuffer &Buffer)
+{
+	for (FInteractionData &Element : HoverData)
+	{
+		if (!Element.active)
+		{
+			continue;
+		}
+
+		// UnHover(Element);
+	}
+}
+void UInteractor::CheckHoverStage(FInteractionBuffer &Buffer)
+{
+	for (FInteractionData &Detection : DetectionData)
+	{
+		if (!Detection.active)
+		{
+			continue;
+		}
+		Hover(Detection);
+		// Add to Hover Data
+	}
+}
+bool UInteractor::DetectionStage(FInteractionBuffer &Buffer)
+{
+
+	return false;
+}
+
+bool UInteractor::IsHoverInputPressed() const
+{
+	if (!HoverInput)
+	{
+		LOG_ERROR("HoverInput is not valid!");
+		return false;
+	}
+
+	if (AController *Controller = ResolveControllerFromOwnership())
+	{
+		if (Controller->IsLocalController())
+		{
+			APlayerController *PC = Cast<APlayerController>(Controller);
+			if (!PC)
+			{
+				LOG_WARNING("Pawn has no PlayerController yet");
+				return false;
+			}
+
+			const UEnhancedPlayerInput *EPI = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
+			if (!EPI)
+			{
+				LOG_WARNING("APlayerController has not any EnhancePlayerInput");
+				return false;
+			}
+
+			return EPI->GetActionValue(HoverInput).Get<bool>();
+		}
+		else
+		{
+			LOG("TEST");
+			return false;
+		}
+	}
+	else
+	{
+		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
+		return false;
+	}
+}

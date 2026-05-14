@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interactor.h"
+#include "Net_Interactor.h"
 #include "FPS_Interactor.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(Blueprintable, ClassGroup = (Core), meta = (BlueprintSpawnableComponent))
-class INTERACTCORE_API UFPS_Interactor : public UInteractor
+class INTERACTCORE_API UFPS_Interactor : public UNet_Interactor
 {
 	GENERATED_BODY()
-	
 };
