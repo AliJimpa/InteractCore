@@ -10,7 +10,7 @@ UInteractorN::UInteractorN()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	bHasBPTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractorN, DoTrace));
+	//bHasBPTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractorN, DoTrace));
 }
 
 // Called when the game starts

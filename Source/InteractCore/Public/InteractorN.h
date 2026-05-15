@@ -35,7 +35,6 @@ struct FInteractionRecord
 private:
 	FHitResult Hit;
 	TScriptInterface<IInteractable> Interface;
-
 	FORCEINLINE void SetInterface(UObject *Obj)
 	{
 		if (!Obj)
@@ -51,7 +50,6 @@ public:
 		Hit = InHit;
 		Interface = nullptr;
 	}
-
 	FORCEINLINE TScriptInterface<IInteractable> GetInterface(EInteractionSearchMode Mode)
 	{
 		if (Interface)
@@ -124,37 +122,31 @@ public:
 
 		return Interface;
 	}
-
 	FORCEINLINE bool IsValid(EInteractionSearchMode Mode)
 	{
 		return GetInterface(Mode) != nullptr;
 	}
 };
 
-USTRUCT(BlueprintType)
 struct FInteractionData
 {
-	GENERATED_BODY()
-
+private:
 	TStaticArray<FInteractionRecord, MAXHITS> Data;
 
 	UPROPERTY()
-	FHitResult Hit;
-
-	UPROPERTY()
 	bool bHovered = false;
-
+public:
 	FORCEINLINE void SetHit(const FHitResult hit)
 	{
-		if (bHovered == false)
-		{
-			Hit = hit;
-		}
-		else
-		{
-			LOG_ERROR("You can Add More");
-			PRINT("You can Add More");
-		}
+		// if (bHovered == false)
+		// {
+		// 	Hit = hit;
+		// }
+		// else
+		// {
+		// 	LOG_ERROR("You can Add More");
+		// 	PRINT("You can Add More");
+		// }
 	}
 
 	FORCEINLINE void Clear()
@@ -185,7 +177,6 @@ private:
 	bool bHasBPTrace = false;
 	FInteractionData CurrentDetectionData;
 	FInteractionData ActiveHoverData;
-	EInteractionSearchMode DetectionMode;
 
 	bool EvaluateTraceHits(const FInteractionData &DetectionData, FInteractionData HoverData);
 	int ChooseInteractionTarget(const FInteractionData &HoverData);
@@ -200,14 +191,21 @@ private:
 	{
 		///
 	}
-	int GetMax() { return MAXHITS; }
 
 protected:
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	static void AddHIT(UPARAM(ref) FInteractionData &Buffer, const FHitResult hit)
-	{
-		Buffer.SetHit(hit);
-	}
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	bool DoTrace(const FInteractionData &Data);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor")
+	EInteractionSearchMode DetectionMode;
+	// UFUNCTION(BlueprintCallable, Category = "Interaction")
+	// static void AddHIT(UPARAM(ref) FInteractionData &Buffer, const FHitResult hit)
+	// {
+	// 	Buffer.SetHit(hit);
+	// }
+	// UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	// bool DoTrace(const FInteractionData &Data);
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Interactor")
+	EInteractionSearchMode GetMode() const { return DetectionMode; }
+	UFUNCTION(BlueprintPure, Category = "Interactor")
+	int GetMax() const { return MAXHITS; }
 };
