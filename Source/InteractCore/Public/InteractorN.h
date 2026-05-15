@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "InteractDebug.h"
+#include "Interactable.h"
 #include "InteractorN.generated.h"
 
 // The total value can allocate in stack for usein this component
@@ -45,48 +46,41 @@ private:
 	FORCEINLINE void SetInterface(UObject *Obj)
 	{
 		if (!Obj)
-		{
 			return;
-		}
 
-		IInteractable *Interactable = Cast<IInteractable>(Obj);
-
-		if (!Interactable)
+		if (Obj->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 		{
-			return;
+			Interface.SetObject(Obj);
+			Interface.SetInterface(Cast<IInteractable>(Obj));
 		}
-
-		Interface.SetObject(Obj);
-		Interface.SetInterface(Interactable);
 	}
 
 public:
 	FORCEINLINE void SetHit(const FHitResult &InHit)
 	{
-		Hit = InHit;
 		Interface = nullptr;
-		bValid = true;
+		Hit = InHit;
+		bValid = Hit.bBlockingHit;
 	}
 	FORCEINLINE TScriptInterface<IInteractable> GetInterface(EInteractionSearchMode Mode)
 	{
+		if (!bValid)
+			return nullptr;
+
 		if (Interface.GetObject())
-		{
 			return Interface;
-		}
 
 		AActor *HitActor = Hit.GetActor();
 		UActorComponent *HitComp = Hit.GetComponent();
 
 		if (!HitActor && !HitComp)
-		{
-			return TScriptInterface<IInteractable>();
-		}
+			return nullptr;
 
 		switch (Mode)
 		{
 		case EInteractionSearchMode::ActorOnly:
 		{
-			if (HitActor && HitActor->Implements<UInteractable>())
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 			{
 				SetInterface(HitActor);
 			}
@@ -94,7 +88,7 @@ public:
 		}
 		case EInteractionSearchMode::ComponentOnly:
 		{
-			if (HitComp && HitComp->Implements<UInteractable>())
+			if (HitComp && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 			{
 				SetInterface(HitComp);
 			}
@@ -102,11 +96,11 @@ public:
 		}
 		case EInteractionSearchMode::ActorAndComponent:
 		{
-			if (HitActor && HitActor->Implements<UInteractable>())
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 			{
 				SetInterface(HitActor);
 			}
-			else if (HitComp && HitComp->Implements<UInteractable>())
+			else if (HitComp && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 			{
 				SetInterface(HitComp);
 			}
@@ -114,7 +108,7 @@ public:
 		}
 		case EInteractionSearchMode::PreferActorFallbackToComponent:
 		{
-			if (HitActor && HitActor->Implements<UInteractable>())
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 			{
 				SetInterface(HitActor);
 				break;
@@ -122,9 +116,10 @@ public:
 
 			if (HitActor)
 			{
-				for (UActorComponent *Comp : HitActor->GetComponents())
+				TInlineComponentArray<UActorComponent *> Components(HitActor);
+				for (UActorComponent *Comp : Components)
 				{
-					if (Comp && Comp->Implements<UInteractable>())
+					if (Comp->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 					{
 						SetInterface(Comp);
 						break;
@@ -141,7 +136,7 @@ public:
 	{
 		return GetInterface(Mode).GetObject() != nullptr;
 	}
-	FORCEINLINE bool IsValud() const
+	FORCEINLINE bool IsValid() const
 	{
 		return bValid;
 	}

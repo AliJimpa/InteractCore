@@ -49,10 +49,40 @@ bool UInteractorN::PerformTrace(FInteractionData &DetectionData)
 {
 	if (MultiHovering)
 	{
+		if (bHasMultiTrace)
+		{
+			TArray<FHitResult> Hits = K2_PerformMultiTrace();
+
+			const int32 NumToCopy = FMath::Min(Hits.Num(), MAXHITS);
+
+			for (int32 i = 0; i < NumToCopy; ++i)
+			{
+				//DetectionData[i].SetHit(Hits[i]);
+			}
+
+			// Clear the unused entries
+			for (int32 i = NumToCopy; i < MAXHITS; ++i)
+			{
+				//DetectionData[i].Clear();
+			}
+
+			return NumToCopy > 0;
+		}
 		return PerformMultiTrace(DetectionData);
 	}
 	else
 	{
+		if (bHasSingleTrace)
+		{
+			// Directly call BlueprintImplementableEvent
+			FHitResult Hit = K2_PerformSingleTrace();
+			if (Hit.bBlockingHit)
+			{
+				//DetectionData[0].SetHit(Hit);
+				return true;
+			}
+			return false;
+		}
 		return PerformSingleTrace(DetectionData);
 	}
 }
