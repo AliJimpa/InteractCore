@@ -30,18 +30,34 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
+USTRUCT()
 struct FInteractionRecord
 {
+	GENERATED_BODY()
 private:
+	UPROPERTY()
+	bool bValid = false;
+	UPROPERTY()
 	FHitResult Hit;
+	UPROPERTY()
 	TScriptInterface<IInteractable> Interface;
+
 	FORCEINLINE void SetInterface(UObject *Obj)
 	{
 		if (!Obj)
+		{
 			return;
+		}
+
+		IInteractable *Interactable = Cast<IInteractable>(Obj);
+
+		if (!Interactable)
+		{
+			return;
+		}
 
 		Interface.SetObject(Obj);
-		Interface.SetInterface(Cast<IInteractable>(Obj));
+		Interface.SetInterface(Interactable);
 	}
 
 public:
@@ -49,10 +65,11 @@ public:
 	{
 		Hit = InHit;
 		Interface = nullptr;
+		bValid = true;
 	}
 	FORCEINLINE TScriptInterface<IInteractable> GetInterface(EInteractionSearchMode Mode)
 	{
-		if (Interface)
+		if (Interface.GetObject())
 		{
 			return Interface;
 		}
@@ -62,7 +79,7 @@ public:
 
 		if (!HitActor && !HitComp)
 		{
-			return nullptr;
+			return TScriptInterface<IInteractable>();
 		}
 
 		switch (Mode)
@@ -75,7 +92,6 @@ public:
 			}
 			break;
 		}
-
 		case EInteractionSearchMode::ComponentOnly:
 		{
 			if (HitComp && HitComp->Implements<UInteractable>())
@@ -84,7 +100,6 @@ public:
 			}
 			break;
 		}
-
 		case EInteractionSearchMode::ActorAndComponent:
 		{
 			if (HitActor && HitActor->Implements<UInteractable>())
@@ -97,7 +112,6 @@ public:
 			}
 			break;
 		}
-
 		case EInteractionSearchMode::PreferActorFallbackToComponent:
 		{
 			if (HitActor && HitActor->Implements<UInteractable>())
@@ -108,12 +122,13 @@ public:
 
 			if (HitActor)
 			{
-				TArray<UActorComponent *> Components =
-					HitActor->GetComponentsByInterface(UInteractable::StaticClass());
-
-				if (Components.Num() > 0)
+				for (UActorComponent *Comp : HitActor->GetComponents())
 				{
-					SetInterface(Components[0]);
+					if (Comp && Comp->Implements<UInteractable>())
+					{
+						SetInterface(Comp);
+						break;
+					}
 				}
 			}
 			break;
@@ -122,36 +137,39 @@ public:
 
 		return Interface;
 	}
-	FORCEINLINE bool IsValid(EInteractionSearchMode Mode)
+	FORCEINLINE bool HasInterface(EInteractionSearchMode Mode)
 	{
-		return GetInterface(Mode) != nullptr;
+		return GetInterface(Mode).GetObject() != nullptr;
+	}
+	FORCEINLINE bool IsValud() const
+	{
+		return bValid;
+	}
+	FORCEINLINE void Clear()
+	{
+		if (bValid)
+		{
+			bValid = false;
+			Interface = nullptr;
+			Hit.Reset(1.f, false);
+		}
 	}
 };
 
+USTRUCT()
 struct FInteractionData
 {
+	GENERATED_BODY()
 private:
 	TStaticArray<FInteractionRecord, MAXHITS> Data;
 
-	UPROPERTY()
-	bool bHovered = false;
 public:
-	FORCEINLINE void SetHit(const FHitResult hit)
-	{
-		// if (bHovered == false)
-		// {
-		// 	Hit = hit;
-		// }
-		// else
-		// {
-		// 	LOG_ERROR("You can Add More");
-		// 	PRINT("You can Add More");
-		// }
-	}
-
 	FORCEINLINE void Clear()
 	{
-		LOG("Clear Record");
+		for (int32 Index = 0; Index < MAXHITS; ++Index)
+		{
+			Data[Index].Clear();
+		}
 	}
 };
 
@@ -167,17 +185,19 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	virtual bool PerformTrace(FInteractionData &DetectionData) PURE_VIRTUAL(UInteractorN::PerformTrace, return false;);
+	virtual bool PerformSingleTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractorN::PerformSingleTrace, return false;);
+	virtual bool PerformMultiTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractorN::PerformMultiTrace, return false;);
 
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 private:
-	bool bHasBPTrace = false;
+	bool bHasSingleTrace = false;
+	bool bHasMultiTrace = false;
 	FInteractionData CurrentDetectionData;
 	FInteractionData ActiveHoverData;
-
+	bool PerformTrace(FInteractionData &DetectionData);
 	bool EvaluateTraceHits(const FInteractionData &DetectionData, FInteractionData HoverData);
 	int ChooseInteractionTarget(const FInteractionData &HoverData);
 	void UpdateHoveredActors()
@@ -192,16 +212,24 @@ private:
 		///
 	}
 
+private:
+	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
+	bool MultiHovering = false;
+	UPROPERTY(VisibleAnywhere, Category = "Interactor|Input", meta = (EditCondition = "MultiHovering == true", EditConditionHides))
+	int MaxHovering;
+	UPROPERTY(EditAnywhere, Category = "Interactor")
+	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
+
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor")
-	EInteractionSearchMode DetectionMode;
 	// UFUNCTION(BlueprintCallable, Category = "Interaction")
 	// static void AddHIT(UPARAM(ref) FInteractionData &Buffer, const FHitResult hit)
 	// {
 	// 	Buffer.SetHit(hit);
 	// }
-	// UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-	// bool DoTrace(const FInteractionData &Data);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	FHitResult K2_PerformSingleTrace();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	TArray<FHitResult> K2_PerformMultiTrace();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interactor")

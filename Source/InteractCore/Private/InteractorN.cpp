@@ -10,7 +10,8 @@ UInteractorN::UInteractorN()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	//bHasBPTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractorN, DoTrace));
+	bHasSingleTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractorN, K2_PerformSingleTrace));
+	bHasMultiTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractorN, K2_PerformMultiTrace));
 }
 
 // Called when the game starts
@@ -44,30 +45,28 @@ void UInteractorN::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 	}
 }
 
-// bool UInteractorN::PerformTrace(FInteractionData &DetectionData)
-// {
-// 	if (bHasBPTrace)
-// 	{
-// 		if (DoTrace(DetectionData))
-// 		{
-// 			// Compair & UnHover
-// 		}
-// 		else
-// 		{
-// 			// Just UnHover
-// 		}
-// 	}
-// 	else
-// 	{
-// 		LOG("Nothing CPP");
-// 	}
-// 	return false;
-// }
+bool UInteractorN::PerformTrace(FInteractionData &DetectionData)
+{
+	if (MultiHovering)
+	{
+		return PerformMultiTrace(DetectionData);
+	}
+	else
+	{
+		return PerformSingleTrace(DetectionData);
+	}
+}
 bool UInteractorN::EvaluateTraceHits(const FInteractionData &DetectionData, FInteractionData HoverData)
 {
+	// if (MultiHovering == false)
+	// {
+
+	// 	return;
+	// }
+
 	bool bChanged = false;
 
-	// // 1. Check old hovered items
+	// 1. Check old hovered items
 	// for (int i = 0; i < GetMax(); ++i)
 	// {
 	// 	auto &OldItem = HoverData.Data[i];
