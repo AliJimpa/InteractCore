@@ -4,124 +4,199 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "InteractDebug.h"
+#include "Interactable.h"
 #include "Interactor.generated.h"
-
-struct FInputActionInstance;
-class UInputAction;
-class IInteractable;
-enum class ETriggerEvent : uint8;
 
 // The total value can allocate in stack for usein this component
 #define MAXHITS 5
 
-struct FInteractionData2
+UENUM()
+enum class EInteractionSearchMode : uint8
 {
-	bool active = false;
-	FHitResult HitData;
+	ActorOnly UMETA(
+		DisplayName = "Actor Only",
+		ToolTip = "Only checks the hit Actor for the interaction interface."),
+
+	ComponentOnly UMETA(
+		DisplayName = "Component Only",
+		ToolTip = "Only checks the hit Components for the interaction interface."),
+
+	ActorAndComponent UMETA(
+		DisplayName = "Actor And Component",
+		ToolTip = "Checks both the hit Actor and its Components for the interaction interface."),
+
+	PreferActorFallbackToComponent UMETA(
+		DisplayName = "Prefer Actor, Fallback To Component",
+		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
-struct FInteractionBuffer
+USTRUCT()
+struct FInteractionRecord
 {
+	GENERATED_BODY()
 private:
-	// TScriptInterface<IInteractable> Interface;
-	// bool bIsHovered = false;
-	TStaticArray<FInteractionData2, MAXHITS> Data;
-	int32 AvailableCount = MAXHITS;
+	UPROPERTY()
+	bool bValid = false;
+	UPROPERTY()
+	FHitResult Hit;
+	UPROPERTY()
+	mutable TScriptInterface<IInteractable> Interface;
+
+	FORCEINLINE void SetInterface(UObject *Obj) const
+	{
+		if (!Obj)
+			return;
+
+		if (Obj->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+		{
+			Interface.SetObject(Obj);
+			Interface.SetInterface(Cast<IInteractable>(Obj));
+		}
+	}
 
 public:
-	/** Number of valid elements currently in the buffer */
-	FORCEINLINE int32 Num() const
+	FORCEINLINE bool operator==(const FInteractionRecord &Other) const
 	{
-		return AvailableCount;
+		return bValid == Other.bValid &&
+			   Interface.GetObject() == Other.Interface.GetObject();
 	}
-
-	/** Maximum capacity */
-	FORCEINLINE int32 Max() const
+	FORCEINLINE bool operator!=(const FInteractionRecord &Other) const
 	{
-		return MAXHITS;
+		return !(*this == Other);
 	}
-
-	FORCEINLINE bool IsEmpty() const
+	FORCEINLINE void SetHit(const FHitResult &InHit)
 	{
-		return AvailableCount == 0;
+		Interface = nullptr;
+		Hit = InHit;
+		bValid = Hit.bBlockingHit;
 	}
-
-	FORCEINLINE bool IsFull() const
+	FORCEINLINE bool TryGetInterface(EInteractionSearchMode Mode, UObject *&OutObject) const
 	{
-		return AvailableCount >= MAXHITS;
-	}
+		const TScriptInterface<IInteractable> Result = GetInterface(Mode);
 
-	/** Read-only access */
-	FORCEINLINE const FInteractionData2 &operator[](int32 Index) const
+		if (UObject *Obj = Result.GetObject())
+		{
+			OutObject = Obj;
+			return true;
+		}
+
+		OutObject = nullptr;
+		return false;
+	}
+	FORCEINLINE TScriptInterface<IInteractable> GetInterface(EInteractionSearchMode Mode) const
 	{
-		check(Index >= 0 && Index < AvailableCount);
-		return Data[Index];
-	}
+		if (!bValid)
+			return nullptr;
 
-	/** Mutable access */
-	FORCEINLINE FInteractionData2 &operator[](int32 Index)
+		if (Interface.GetObject())
+			return Interface;
+
+		AActor *HitActor = Hit.GetActor();
+		UActorComponent *HitComp = Hit.GetComponent();
+		if (!HitActor && !HitComp)
+			return nullptr;
+
+		switch (Mode)
+		{
+		case EInteractionSearchMode::ActorOnly:
+		{
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+			{
+				SetInterface(HitActor);
+			}
+			break;
+		}
+		case EInteractionSearchMode::ComponentOnly:
+		{
+			if (HitComp && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+			{
+				SetInterface(HitComp);
+			}
+			break;
+		}
+		case EInteractionSearchMode::ActorAndComponent:
+		{
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+			{
+				SetInterface(HitActor);
+			}
+			else if (HitComp && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+			{
+				SetInterface(HitComp);
+			}
+			break;
+		}
+		case EInteractionSearchMode::PreferActorFallbackToComponent:
+		{
+			if (HitActor && HitActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+			{
+				SetInterface(HitActor);
+				break;
+			}
+
+			if (HitActor)
+			{
+				TInlineComponentArray<UActorComponent *> Components(HitActor);
+				for (UActorComponent *Comp : Components)
+				{
+					if (Comp->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+					{
+						SetInterface(Comp);
+						break;
+					}
+				}
+			}
+			break;
+		}
+		}
+		return Interface;
+	}
+	FORCEINLINE bool HasInterface(EInteractionSearchMode Mode) const
 	{
-		check(Index >= 0 && Index < AvailableCount);
-		return Data[Index];
+		return GetInterface(Mode) != nullptr;
 	}
-
-	/** Add element, returns false if buffer is full */
-	// FORCEINLINE bool Add(const FInteractionData2 &Item)
-	// {
-	// 	if (IsFull())
-	// 	{
-	// 		return false;
-	// 	}
-
-	// 	//Data[NumElements++] = Item;
-	// 	return true;
-	// }
-
-	/** Emplace-like add */
-	// FORCEINLINE FInteractionData2 &AddDefaulted()
-	// {
-	// 	check(!IsFull());
-	// 	return Data[NumElements++];
-	// }
-
-	/** Remove element by index (swap-remove, O(1)) */
-	// FORCEINLINE void RemoveAtSwap(int32 Index)
-	// {
-	// 	check(Index >= 0 && Index < NumElements);
-
-	// 	--NumElements;
-	// 	if (Index != NumElements)
-	// 	{
-	// 		Data[Index] = MoveTemp(Data[NumElements]);
-	// 	}
-	// }
-
-	/** Clear buffer */
-	// FORCEINLINE void Reset()
-	// {
-	// 	NumElements = 0;
-	// }
-
-	/** Pointer access (for ranged-for compatibility) */
-	FORCEINLINE FInteractionData2 *GetData()
+	FORCEINLINE bool IsValid() const
 	{
-		return Data.GetData();
+		return bValid;
 	}
-
-	FORCEINLINE const FInteractionData2 *GetData() const
+	FORCEINLINE void Clear()
 	{
-		return Data.GetData();
+		if (bValid)
+		{
+			bValid = false;
+			Interface = nullptr;
+			Hit.Reset(1.f, false);
+		}
 	}
-
-	/** Range-for support */
-	FORCEINLINE FInteractionData2 *begin() { return Data.GetData(); }
-	FORCEINLINE FInteractionData2 *end() { return Data.GetData() + AvailableCount; }
-
-	FORCEINLINE const FInteractionData2 *begin() const { return Data.GetData(); }
-	FORCEINLINE const FInteractionData2 *end() const { return Data.GetData() + AvailableCount; }
 };
 
-UCLASS(Abstract)
+USTRUCT()
+struct FInteractionData
+{
+	GENERATED_BODY()
+private:
+	TStaticArray<FInteractionRecord, MAXHITS> Data;
+
+public:
+	FORCEINLINE const FInteractionRecord &operator[](int32 Index) const
+	{
+		return Data[Index]; // returns by const reference
+	}
+	FORCEINLINE void SetHit(int32 index, const FHitResult &InHit)
+	{
+		Data[index].SetHit(InHit);
+	}
+	FORCEINLINE void Clear()
+	{
+		for (int32 Index = 0; Index < MAXHITS; ++Index)
+		{
+			Data[Index].Clear();
+		}
+	}
+};
+
+UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class INTERACTCORE_API UInteractor : public UActorComponent
 {
 	GENERATED_BODY()
@@ -133,130 +208,55 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
-	int32 GetNumActive(const FInteractionBuffer &Buffer) const
-	{
-		int32 Count = 0;
-
-		for (int32 i = 0; i < Buffer.Num(); ++i)
-		{
-			if (Buffer[i].active)
-			{
-				++Count;
-			}
-		}
-
-		return Count;
-	}
-	int32 FindFirstActiveIndex(const FInteractionBuffer &Buffer) const
-	{
-		for (int32 i = 0; i < Buffer.Num(); ++i)
-		{
-			if (Buffer[i].active)
-			{
-				return i;
-			}
-		}
-
-		return INDEX_NONE;
-	}
-	bool HasAnyActive(const FInteractionBuffer &Buffer) const
-	{
-		for (int32 i = 0; i < Buffer.Num(); ++i)
-		{
-			if (Buffer[i].active)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+	virtual bool PerformSingleTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractor::PerformSingleTrace, return false;);
+	virtual bool PerformMultiTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractor::PerformMultiTrace, return false;);
 
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 private:
-	// Variables
-	FInteractionBuffer DetectionData;
-	FInteractionBuffer HoverData;
-	// Functions
-	// Get owner control with trace ownership
-	AController *ResolveControllerFromOwnership() const;
-	// Binding methods for interactionInput
-	void OnInteractInput_Triggered(const FInputActionInstance &Instance);
-	void OnInteractInput_Started(const FInputActionInstance &Instance);
-	void OnInteractInput_Ongoing(const FInputActionInstance &Instance);
-	void OnInteractInput_Canceled(const FInputActionInstance &Instance);
-	void OnInteractInput_Completed(const FInputActionInstance &Instance);
-	//
-	void OnInteractTrigger(const FInputActionInstance &Instance, ETriggerEvent TriggerMode);
-	//
-	bool CanUpdateInteraction(bool UseInput) const;
-	void CheckUnhoverStage(FInteractionBuffer &Buffer);
-	void CheckHoverStage(FInteractionBuffer &Buffer);
-	//
-	bool DetectionStage(FInteractionBuffer &Buffer);
+	bool bHasSingleTrace = false;
+	bool bHasMultiTrace = false;
+	FInteractionData CurrentDetectionData;
+	FInteractionData ActiveHoverData;
+	bool PerformTrace(FInteractionData &DetectionData);
+	bool EvaluateTraceHits(const FInteractionData &NewData, FInteractionData OldData);
+	int ChooseInteractionTarget(const FInteractionData &HoverData);
+	void UpdateHoveredActors()
+	{
+		// if(CanHover())
+		// {
+
+		// }
+	}
+	void UpdateUnhoveredActors()
+	{
+		///
+	}
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
+	bool MultiHovering = false;
+	UPROPERTY(VisibleAnywhere, Category = "Interactor|Input", meta = (EditCondition = "MultiHovering == true", EditConditionHides))
+	int MaxHovering;
+	UPROPERTY(EditAnywhere, Category = "Interactor")
+	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Input")
-	UInputAction *InteractionInput;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Input")
-	bool UseInputForHovering;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interactor|Input", meta = (EditCondition = "UseInputForHovering == true", EditConditionHides))
-	UInputAction *HoverInput;
-	UFUNCTION(BlueprintPure, Category = "Interactor|Input")
-	bool IsHoverInputPressed() const;
+	// UFUNCTION(BlueprintCallable, Category = "Interaction")
+	// static void AddHIT(UPARAM(ref) FInteractionData &Buffer, const FHitResult hit)
+	// {
+	// 	Buffer.SetHit(hit);
+	// }
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	FHitResult K2_PerformSingleTrace();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	TArray<FHitResult> K2_PerformMultiTrace();
 
-	// virtual void OnInteractTrigger(const FInputActionInstance &Instance, ETriggerEvent TriggerMode) PURE_VIRTUAL(UInteractor::OnInteractTrigger, );
-	//  UFUNCTION()
-	// virtual bool CanUpdateInteraction() const PURE_VIRTUAL(UInteractor::CanUpdateInteraction, return false;);
-	// UFUNCTION()
-	// virtual bool TryDetectStage(FInteractionBuffer &InOutHits) PURE_VIRTUAL(UInteractor::TryDetectStage, return false;);
-	// UFUNCTION()
-	void Hover(FInteractionData2 record) {};
-	// UFUNCTION()
-	void Unhover(FInteractionData2 record)
-	{
-		record.active = false;
-	};
-	// UFUNCTION()
-	void CompaireRecords(FInteractionBuffer &DetectHit, FInteractionBuffer &HoverHit)
-	{
-
-		bool bMatchFound = false;
-		for (const FInteractionData2 &Hover : HoverHit)
-		{
-			if (!Hover.active)
-			{
-				continue;
-			}
-
-			AActor *HoverActor = Hover.HitData.GetActor();
-			bMatchFound = false;
-
-			for (FInteractionData2 &Detection : DetectHit)
-			{
-				if (!Detection.active)
-				{
-					continue;
-				}
-
-				if (Detection.HitData.GetActor() == HoverActor)
-				{
-					Detection.active = false;
-					bMatchFound = true;
-					break;
-				}
-			}
-
-			if (!bMatchFound)
-			{
-				Unhover(Hover);
-			}
-		}
-	};
-	// UFUNCTION()
-	virtual bool TrySortStage(FInteractionBuffer &InOutHits) PURE_VIRTUAL(UInteractor::TrySortStage, return false;);
-	// UFUNCTION()
+public:
+	UFUNCTION(BlueprintPure, Category = "Interactor")
+	EInteractionSearchMode GetMode() const { return DetectionMode; }
+	UFUNCTION(BlueprintPure, Category = "Interactor")
+	int GetMax() const { return MAXHITS; }
 };

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractorN.h"
+#include "Interactor.h"
 #include "DefaultInteractor.generated.h"
 
 /**
  *
  */
 UCLASS()
-class INTERACTCORE_API UDefaultInteractor : public UInteractorN
+class INTERACTCORE_API UDefaultInteractor : public UInteractor
 {
 	GENERATED_BODY()
 
