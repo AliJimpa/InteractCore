@@ -8,6 +8,8 @@
 #include "Interactable.h"
 #include "Interactor.generated.h"
 
+class UInputAction;
+
 // The total value can allocate in stack for usein this component
 #define MAXHITS 5
 
@@ -258,7 +260,7 @@ public:
 	}
 };
 
-UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+UCLASS(Abstract)
 class INTERACTCORE_API UInteractor : public UActorComponent
 {
 	GENERATED_BODY()
@@ -290,12 +292,14 @@ private:
 	const FInteractionRecord *ChooseInteractionTarget(const FInteractionData &HoverData);
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	bool MultiHovering = false;
-	UPROPERTY(VisibleAnywhere, Category = "Interactor|Input", meta = (EditCondition = "MultiHovering == true", EditConditionHides))
-	int MaxHovering;
-	UPROPERTY(EditAnywhere, Category = "Interactor")
+	UPROPERTY(VisibleAnywhere, Category = "Interaction", meta = (EditCondition = "MultiHovering == true", EditConditionHides))
+	int MaxHovering = MAXHITS;
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
+	UInputAction *InteractionInput;
 
 protected:
 	// UFUNCTION(BlueprintCallable, Category = "Interaction")
@@ -303,17 +307,17 @@ protected:
 	// {
 	// 	Buffer.SetHit(hit);
 	// }
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
 	FHitResult K2_PerformSingleTrace();
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
 	TArray<FHitResult> K2_PerformMultiTrace();
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
 	TScriptInterface<IInteractable> K2_SelectInteractionTarget(const TArray<TScriptInterface<IInteractable>> &Interactables);
 
 public:
-	UFUNCTION(BlueprintPure, Category = "Interactor")
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
 	EInteractionSearchMode GetMode() const { return DetectionMode; }
-	UFUNCTION(BlueprintPure, Category = "Interactor")
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
 	int GetMax() const { return MAXHITS; }
 
 public:

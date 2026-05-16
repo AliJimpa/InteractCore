@@ -9,7 +9,7 @@
 /**
  *
  */
-UCLASS()
+UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class INTERACTCORE_API UDefaultInteractor : public UInteractor
 {
 	GENERATED_BODY()
