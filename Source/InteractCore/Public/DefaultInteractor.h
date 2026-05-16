@@ -17,4 +17,5 @@ class INTERACTCORE_API UDefaultInteractor : public UInteractor
 protected:
 	virtual bool PerformSingleTrace(FInteractionData &OutData) override;
 	virtual bool PerformMultiTrace(FInteractionData &OutData) override;
+	virtual const FInteractionRecord *SelectInteractionTarget(const FInteractionData &HoverData) override;
 };

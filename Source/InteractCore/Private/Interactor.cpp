@@ -12,6 +12,7 @@ UInteractor::UInteractor()
 	// ...
 	bHasSingleTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractor, K2_PerformSingleTrace));
 	bHasMultiTrace = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractor, K2_PerformMultiTrace));
+	bHasSelectInteraction = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractor, K2_SelectInteractionTarget));
 }
 
 // Called when the game starts
@@ -34,13 +35,32 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 	{
 		if (EvaluateTraceHits(CurrentDetectionData, ActiveHoverData))
 		{
-			UpdateHoveredActors();
-			int TargetIndex = ChooseInteractionTarget(ActiveHoverData);
+			if (MultiHovering)
+			{
+				TargetInteraction = ChooseInteractionTarget(ActiveHoverData);
+			}
+			else
+			{
+				TargetInteraction = nullptr;
+			}
 		}
 	}
 	else
 	{
-		UpdateUnhoveredActors();
+		if (ActiveHoverData.HasAnyRecord())
+		{
+			for (int32 j = 0; j < GetMax(); ++j)
+			{
+				if (ActiveHoverData[j].IsValid())
+				{
+					UObject *Obj;
+					if (ActiveHoverData[j].TryGetInterface(DetectionMode, Obj))
+					{
+						IInteractable::Execute_UnHover(Obj, this);
+					}
+				}
+			}
+		}
 		return;
 	}
 }
@@ -80,93 +100,92 @@ bool UInteractor::PerformTrace(FInteractionData &DetectionData)
 		return PerformSingleTrace(DetectionData);
 	}
 }
-bool UInteractor::EvaluateTraceHits(const FInteractionData &NewData, FInteractionData OldData)
+bool UInteractor::EvaluateTraceHits(const FInteractionData &NewData, FInteractionData &OldData)
 {
-	if (MultiHovering == false)
+	// ----- Single hover mode (fast path) -----
+	if (!MultiHovering)
 	{
 		if (NewData[0] == OldData[0])
 			return false;
 
 		UObject *Obj;
+
 		if (OldData[0].TryGetInterface(DetectionMode, Obj))
 		{
 			IInteractable::Execute_UnHover(Obj, this);
 		}
+
+		if (NewData[0].TryGetInterface(DetectionMode, Obj))
+		{
+			IInteractable::Execute_Hover(Obj, this, NewData[0].GetHit());
+		}
+
+		OldData = NewData;
+		return true;
 	}
 
+	const int32 Max = GetMax();
 	bool bChanged = false;
+	bool OldMatched[MAXHITS] = {false};
+	// ----- Process new hits -----
+	for (int32 i = 0; i < Max; ++i)
+	{
+		if (!NewData[i].IsValid())
+			continue;
 
-	// 1. Check old hovered items
-	// for (int i = 0; i < GetMax(); ++i)
-	// {
-	// 	auto &OldItem = HoverData.Data[i];
+		int32 MatchIndex = -1;
+		for (int32 j = 0; j < Max; ++j)
+		{
+			if (!OldMatched[j] && OldData[j].IsValid() && NewData[i] == OldData[j])
+			{
+				MatchIndex = j;
+				break;
+			}
+		}
 
-	// 	if (!OldItem.Interface)
-	// 		continue;
+		// mark match
+		if (MatchIndex >= 0)
+		{
+			OldMatched[MatchIndex] = true;
+			continue;
+		}
 
-	// 	bool bFound = false;
+		// New hover
+		UObject *Obj;
+		if (NewData[i].TryGetInterface(DetectionMode, Obj))
+		{
+			IInteractable::Execute_Hover(Obj, this, NewData[i].GetHit());
+		}
 
-	// 	for (int j = 0; j < GetMax(); ++j)
-	// 	{
-	// 		if (DetectionData.Data[j].Interface == OldItem.Interface)
-	// 		{
-	// 			bFound = true;
-	// 			break;
-	// 		}
-	// 	}
+		bChanged = true;
+	}
+	// ----- Process unhovers -----
+	for (int32 i = 0; i < Max; ++i)
+	{
+		if (!OldData[i].IsValid() || OldMatched[i])
+			continue;
 
-	// 	if (!bFound)
-	// 	{
-	// 		IInteractable::Execute_OnUnhover(
-	// 			OldItem.Interface.GetObject());
+		UObject *Obj;
+		if (OldData[i].TryGetInterface(DetectionMode, Obj))
+		{
+			IInteractable::Execute_UnHover(Obj, this);
+		}
 
-	// 		OldItem.Interface = nullptr;
-	// 		OldItem.bIsHovered = false;
+		bChanged = true;
+	}
 
-	// 		bChanged = true;
-	// 	}
-	// }
-
-	// // 2. Check new detected items
-	// for (int i = 0; i < GetMax(); ++i)
-	// {
-	// 	auto &NewItem = DetectionData.Data[i];
-
-	// 	if (!NewItem.Interface)
-	// 		continue;
-
-	// 	bool bFound = false;
-
-	// 	for (int j = 0; j < GetMax(); ++j)
-	// 	{
-	// 		if (HoverData.Data[j].Interface == NewItem.Interface)
-	// 		{
-	// 			bFound = true;
-	// 			break;
-	// 		}
-	// 	}
-
-	// 	if (!bFound)
-	// 	{
-	// 		for (int k = 0; k < GetMax(); ++k)
-	// 		{
-	// 			if (!HoverData.Data[k].Interface)
-	// 			{
-	// 				HoverData.Data[k] = NewItem;
-
-	// 				IInteractable::Execute_OnHover(
-	// 					NewItem.Interface.GetObject());
-
-	// 				bChanged = true;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// }
-
+	OldData = NewData;
 	return bChanged;
 }
-int UInteractor::ChooseInteractionTarget(const FInteractionData &HoverData)
+const FInteractionRecord *UInteractor::ChooseInteractionTarget(const FInteractionData &HoverData)
 {
-	return 0;
+	if (bHasSelectInteraction)
+	{
+		auto srt = K2_SelectInteractionTarget(HoverData.GetInteractables(DetectionMode));
+	}
+	else
+	{
+		auto uut = SelectInteractionTarget(HoverData);
+	}
+	return nullptr;
 }

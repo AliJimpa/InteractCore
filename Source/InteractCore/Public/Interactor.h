@@ -71,6 +71,10 @@ public:
 		Hit = InHit;
 		bValid = Hit.bBlockingHit;
 	}
+	FORCEINLINE FHitResult GetHit() const
+	{
+		return Hit;
+	}
 	FORCEINLINE bool TryGetInterface(EInteractionSearchMode Mode, UObject *&OutObject) const
 	{
 		const TScriptInterface<IInteractable> Result = GetInterface(Mode);
@@ -179,13 +183,74 @@ private:
 	TStaticArray<FInteractionRecord, MAXHITS> Data;
 
 public:
+	FORCEINLINE FInteractionData &operator=(const FInteractionData &Other)
+	{
+		if (this != &Other)
+		{
+			Data = Other.Data;
+		}
+		return *this;
+	}
 	FORCEINLINE const FInteractionRecord &operator[](int32 Index) const
 	{
 		return Data[Index]; // returns by const reference
 	}
+	TArray<TScriptInterface<IInteractable>> GetInteractables(EInteractionSearchMode Mode) const
+	{
+		TArray<TScriptInterface<IInteractable>> Interactables;
+
+		for (int32 i = 0; i < MAXHITS; ++i)
+		{
+			if (!Data[i].IsValid())
+				continue;
+
+			UObject *Obj;
+			if (Data[i].TryGetInterface(Mode, Obj))
+			{
+				TScriptInterface<IInteractable> Interface;
+				Interface.SetObject(Obj);
+				Interface.SetInterface(Cast<IInteractable>(Obj));
+
+				Interactables.Add(Interface);
+			}
+		}
+
+		return Interactables;
+	}
+	FORCEINLINE bool TryGetHitByInterface(const UObject *InObject, EInteractionSearchMode Mode, FHitResult &OutHit) const
+	{
+		if (!InObject)
+			return false;
+
+		for (int32 Index = 0; Index < MAXHITS; ++Index)
+		{
+			const FInteractionRecord &Record = Data[Index];
+
+			if (!Record.IsValid())
+				continue;
+
+			const UObject *Obj = Record.GetInterface(Mode).GetObject();
+			if (Obj == InObject)
+			{
+				OutHit = Record.GetHit();
+				return true;
+			}
+		}
+
+		return false;
+	}
 	FORCEINLINE void SetHit(int32 index, const FHitResult &InHit)
 	{
 		Data[index].SetHit(InHit);
+	}
+	FORCEINLINE bool HasAnyRecord() const
+	{
+		for (int32 j = 0; j < MAXHITS; ++j)
+		{
+			if (Data[j].IsValid())
+				return true;
+		}
+		return false;
 	}
 	FORCEINLINE void Clear()
 	{
@@ -210,6 +275,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual bool PerformSingleTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractor::PerformSingleTrace, return false;);
 	virtual bool PerformMultiTrace(FInteractionData &OutData) PURE_VIRTUAL(UInteractor::PerformMultiTrace, return false;);
+	virtual const FInteractionRecord *SelectInteractionTarget(const FInteractionData &HoverData) PURE_VIRTUAL(UInteractor::SelectInteractionTarget, return {};);
 
 public:
 	// Called every frame
@@ -218,22 +284,13 @@ public:
 private:
 	bool bHasSingleTrace = false;
 	bool bHasMultiTrace = false;
+	bool bHasSelectInteraction = false;
 	FInteractionData CurrentDetectionData;
 	FInteractionData ActiveHoverData;
+	const FInteractionRecord* TargetInteraction = nullptr;
 	bool PerformTrace(FInteractionData &DetectionData);
-	bool EvaluateTraceHits(const FInteractionData &NewData, FInteractionData OldData);
-	int ChooseInteractionTarget(const FInteractionData &HoverData);
-	void UpdateHoveredActors()
-	{
-		// if(CanHover())
-		// {
-
-		// }
-	}
-	void UpdateUnhoveredActors()
-	{
-		///
-	}
+	bool EvaluateTraceHits(const FInteractionData &NewData, FInteractionData &OldData);
+	const FInteractionRecord *ChooseInteractionTarget(const FInteractionData &HoverData);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
@@ -253,10 +310,29 @@ protected:
 	FHitResult K2_PerformSingleTrace();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 	TArray<FHitResult> K2_PerformMultiTrace();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+	TScriptInterface<IInteractable> K2_SelectInteractionTarget(const TArray<TScriptInterface<IInteractable>> &Interactables);
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interactor")
 	EInteractionSearchMode GetMode() const { return DetectionMode; }
 	UFUNCTION(BlueprintPure, Category = "Interactor")
 	int GetMax() const { return MAXHITS; }
+
+public:
+	const TScriptInterface<IInteractable> GetInteractionTarget() const
+	{
+		if (TargetInteraction != nullptr)
+		{
+			return TargetInteraction->GetInterface(DetectionMode);
+		}
+
+		return nullptr;
+	}
+
+protected:
+	const FInteractionRecord *GetInteractionRecord() const
+	{
+		return TargetInteraction;
+	}
 };
