@@ -41,7 +41,7 @@ void UInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			}
 			else
 			{
-				TargetInteraction = nullptr;
+				TargetInteraction = &ActiveHoverData[0];
 			}
 		}
 	}
@@ -181,11 +181,11 @@ const FInteractionRecord *UInteractor::ChooseInteractionTarget(const FInteractio
 {
 	if (bHasSelectInteraction)
 	{
-		auto srt = K2_SelectInteractionTarget(HoverData.GetInteractables(DetectionMode));
+		TScriptInterface<IInteractable> SelectedInteractable =
+			K2_SelectInteractionTarget(HoverData.GetInteractables(DetectionMode));
+
+		return HoverData.FindRecordByInterface(SelectedInteractable.GetObject(), DetectionMode);
 	}
-	else
-	{
-		auto uut = SelectInteractionTarget(HoverData);
-	}
-	return nullptr;
+
+	return SelectInteractionTarget(HoverData);
 }

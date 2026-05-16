@@ -217,27 +217,24 @@ public:
 
 		return Interactables;
 	}
-	FORCEINLINE bool TryGetHitByInterface(const UObject *InObject, EInteractionSearchMode Mode, FHitResult &OutHit) const
+	FORCEINLINE const FInteractionRecord *FindRecordByInterface(const UObject *InObject, EInteractionSearchMode Mode) const
 	{
 		if (!InObject)
-			return false;
+			return nullptr;
 
-		for (int32 Index = 0; Index < MAXHITS; ++Index)
+		for (const FInteractionRecord &Record : Data)
 		{
-			const FInteractionRecord &Record = Data[Index];
-
 			if (!Record.IsValid())
 				continue;
 
-			const UObject *Obj = Record.GetInterface(Mode).GetObject();
-			if (Obj == InObject)
+			const TScriptInterface<IInteractable> Interface = Record.GetInterface(Mode);
+			if (Interface.GetObject() == InObject)
 			{
-				OutHit = Record.GetHit();
-				return true;
+				return &Record;
 			}
 		}
 
-		return false;
+		return nullptr;
 	}
 	FORCEINLINE void SetHit(int32 index, const FHitResult &InHit)
 	{
@@ -287,7 +284,7 @@ private:
 	bool bHasSelectInteraction = false;
 	FInteractionData CurrentDetectionData;
 	FInteractionData ActiveHoverData;
-	const FInteractionRecord* TargetInteraction = nullptr;
+	const FInteractionRecord *TargetInteraction = nullptr;
 	bool PerformTrace(FInteractionData &DetectionData);
 	bool EvaluateTraceHits(const FInteractionData &NewData, FInteractionData &OldData);
 	const FInteractionRecord *ChooseInteractionTarget(const FInteractionData &HoverData);
