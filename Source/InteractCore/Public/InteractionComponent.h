@@ -44,7 +44,9 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void PreHovering() PURE_VIRTUAL(UInteractionComponent::PreHovering);
 	virtual bool GetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::GetDetectedFocused, return false;);
+	virtual void PostHovering() PURE_VIRTUAL(UInteractionComponent::PostHovering);
 
 public:
 	// Called every frame
@@ -52,28 +54,26 @@ public:
 
 private:
 	TScriptInterface<IInteractable> CurrentFocused = nullptr;
+	void UpdateInteraction();
 	TScriptInterface<IInteractable> ResolveInteractableFromHit(const FHitResult &Hit) const;
-	AController *ResolveControllerFromOwnership() const
-	{
-		if (APawn *Pawn = Cast<APawn>(GetOwner()))
-		{
-			return Pawn->GetController();
-		}
-
-		if (AController *Controller = Cast<AController>(GetOwner()))
-		{
-			return Controller;
-		}
-
-		return nullptr;
-	}
 	void SetupInteractionInput();
+	AController *ResolveControllerFromOwnership() const;
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
 	void OnInteractInput(const FInputActionInstance &Instance);
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
+	EInteractionSearchMode GetMode() const { return DetectionMode; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
+	const TScriptInterface<IInteractable> GetCurrentFocused() const { return CurrentFocused; }
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Tick")
+	bool bUseCustomTickInterval = false;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bUseCustomTickInterval"), meta = (ClampMin = "1", ClampMax = "120"))
+	float InteractionTraceRate = 20;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
 	bool bInteractionInputBound = true;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
