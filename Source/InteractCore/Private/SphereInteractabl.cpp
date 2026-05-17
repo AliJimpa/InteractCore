@@ -5,13 +5,13 @@
 
 
 // Implement IInteraction Interface
-void USphereInteractable::Hover_Implementation(UInteractor *Provider, FHitResult Hit)
+void USphereInteractable::Hover_Implementation(UActorComponent *Provider, FHitResult Hit)
 {
 }
-void USphereInteractable::UnHover_Implementation(UInteractor *Provider)
+void USphereInteractable::UnHover_Implementation(UActorComponent *Provider)
 {
 }
-void USphereInteractable::Interact_Implementation(UInteractor *Provider, FHitResult Hit)
+void USphereInteractable::Interact_Implementation(UActorComponent *Provider, FHitResult Hit)
 {
 }
 bool USphereInteractable::CanHover_Implementation() const

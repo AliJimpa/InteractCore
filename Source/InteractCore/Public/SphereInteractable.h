@@ -28,9 +28,9 @@ class INTERACTCORE_API USphereInteractable : public USphereComponent, public IIn
 
 protected:
 	// Implement IInteraction Interface
-	virtual void Hover_Implementation(UInteractor *Provider, FHitResult Hit) override;
-	virtual void UnHover_Implementation(UInteractor *Provider) override;
-	virtual void Interact_Implementation(UInteractor *Provider, FHitResult Hit) override;
+	virtual void Hover_Implementation(UActorComponent *Provider, FHitResult Hit) override;
+	virtual void UnHover_Implementation(UActorComponent *Provider) override;
+	virtual void Interact_Implementation(UActorComponent *Provider, FHitResult Hit) override;
 	virtual bool CanHover_Implementation() const override;
 	virtual bool CanInteract_Implementation(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const override;
 };

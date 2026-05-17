@@ -9,29 +9,30 @@
 #include "Interactor.generated.h"
 
 class UInputAction;
+enum class EInteractionSearchMode : uint8;
 
 // The total value can allocate in stack for usein this component
 #define MAXHITS 5
 
-UENUM()
-enum class EInteractionSearchMode : uint8
-{
-	ActorOnly UMETA(
-		DisplayName = "Actor Only",
-		ToolTip = "Only checks the hit Actor for the interaction interface."),
+// UENUM()
+// enum class EInteractionSearchMode : uint8
+// {
+// 	ActorOnly UMETA(
+// 		DisplayName = "Actor Only",
+// 		ToolTip = "Only checks the hit Actor for the interaction interface."),
 
-	ComponentOnly UMETA(
-		DisplayName = "Component Only",
-		ToolTip = "Only checks the hit Components for the interaction interface."),
+// 	ComponentOnly UMETA(
+// 		DisplayName = "Component Only",
+// 		ToolTip = "Only checks the hit Components for the interaction interface."),
 
-	ActorAndComponent UMETA(
-		DisplayName = "Actor And Component",
-		ToolTip = "Checks both the hit Actor and its Components for the interaction interface."),
+// 	ActorAndComponent UMETA(
+// 		DisplayName = "Actor And Component",
+// 		ToolTip = "Checks both the hit Actor and its Components for the interaction interface."),
 
-	PreferActorFallbackToComponent UMETA(
-		DisplayName = "Prefer Actor, Fallback To Component",
-		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
-};
+// 	PreferActorFallbackToComponent UMETA(
+// 		DisplayName = "Prefer Actor, Fallback To Component",
+// 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
+// };
 
 USTRUCT()
 struct FInteractionRecord
@@ -70,8 +71,9 @@ public:
 	FORCEINLINE void SetHit(const FHitResult &InHit)
 	{
 		Interface = nullptr;
-		Hit = InHit;
 		bValid = Hit.bBlockingHit;
+		if (bValid)
+			Hit = InHit;
 	}
 	FORCEINLINE FHitResult GetHit() const
 	{

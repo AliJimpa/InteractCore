@@ -20,11 +20,11 @@ class INTERACTCORE_API IInteractable
 
 public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events", meta = (ToolTip = "Need Tip"))
-    void Hover(UInteractor *Provider, FHitResult Hit);
+    void Hover(UActorComponent *Provider, FHitResult Hit);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
-    void UnHover(UInteractor *Provider);
+    void UnHover(UActorComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
-    void Interact(UInteractor *Provider, FHitResult Hit);
+    void Interact(UActorComponent *Provider, FHitResult Hit);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
     bool CanHover() const;
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
