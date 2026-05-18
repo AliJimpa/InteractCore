@@ -32,7 +32,7 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
 class INTERACTCORE_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -52,8 +52,10 @@ protected:
 	 *
 	 * @param InController Controller associated with this component's owner. May be null in some cases.
 	 */
-	virtual void OnControllerReady(AController *InController) PURE_VIRTUAL(UInteractionComponent::OnControllerReady);
+	virtual void OnControllerReady(AController *InController) PURE_VIRTUAL(UInteractionComponent::OnControllerReady,);
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
+	virtual bool CanHover(UObject *Interactable) const PURE_VIRTUAL(UDefaultInteractor::CanHover, return true;);
+	virtual bool CanInteract(UObject *Interactable) const PURE_VIRTUAL(UDefaultInteractor::CustomAdaptiveTick, return true;);
 
 public:
 	// Called every frame
@@ -90,7 +92,7 @@ public:
 	 *
 	 * @return World-space transform representing the interaction pivot.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DisplayName = "Get Interaction Pivot", ToolTip = "Returns the world transform used as the interaction pivot. Uses PivotComponent if set, otherwise the manually assigned PivotValue."))
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Getter", meta = (DisplayName = "Get Interaction Pivot", ToolTip = "Returns the world transform used as the interaction pivot. Uses PivotComponent if set, otherwise the manually assigned PivotValue."))
 	FTransform GetPivot() const;
 	/**
 	 * Sets the interaction pivot to use a SceneComponent.
@@ -100,7 +102,7 @@ public:
 	 *
 	 * @param InComponent SceneComponent to use as the pivot source.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DisplayName = "Set Pivot (Component)", ToolTip = "Sets a SceneComponent as the pivot source. The pivot will follow this component's world transform."))
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Setter", meta = (DisplayName = "Set Pivot (Component)", ToolTip = "Sets a SceneComponent as the pivot source. The pivot will follow this component's world transform."))
 	void SetPivotToComponent(USceneComponent *InComponent);
 	/**
 	 * Sets a fixed transform as the interaction pivot.
@@ -110,8 +112,10 @@ public:
 	 *
 	 * @param InValue World-space transform to use as the pivot.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DisplayName = "Set Pivot (Transform)", ToolTip = "Sets a fixed world transform as the pivot. Clears any assigned PivotComponent."))
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Setter", meta = (DisplayName = "Set Pivot (Transform)", ToolTip = "Sets a fixed world transform as the pivot. Clears any assigned PivotComponent."))
 	void SetPivotToTransform(const FTransform &InValue);
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Setter")
+	void SetInteractionActive(bool bEnable);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")

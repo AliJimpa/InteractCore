@@ -28,7 +28,7 @@ enum class EInteractionAdaptiveTickMode : uint8
 /**
  *
  */
-UCLASS(Abstract)
+UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
 class INTERACTCORE_API UDefaultInteractor : public UInteractionComponent
 {
 	GENERATED_BODY()
@@ -39,6 +39,8 @@ public:
 
 protected:
 	virtual void CustomAdaptiveTick(float Threshould, float &OutTickRate) PURE_VIRTUAL(UDefaultInteractor::CustomAdaptiveTick);
+	virtual bool CanHover(UObject *Interactable) const override;
+	virtual bool CanInteract(UObject *Interactable) const override;
 
 private:
 	void UpdateTickByCameraRotation(float Threshold, float &OutTickRate);
@@ -50,8 +52,12 @@ private:
 	bool bIsImplementCustomAdaptiveTick = false;
 
 protected:
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "CustomAdaptiveTick"))
 	void K2_CustomAdaptiveTick(float Threshould, UPARAM(ref) float &OutTickRate);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "CanHover"))
+	bool K2_CanHover(UObject *Interactable) const;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "CanInteract"))
+	bool K2_CanInteract(UObject *Interactable) const;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle."))

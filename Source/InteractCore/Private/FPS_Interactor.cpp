@@ -7,6 +7,9 @@ void UFPS_Interactor::OnControllerReady(AController *InController)
 {
     Super::OnControllerReady(InController);
 
+    if (InController == nullptr)
+        return;
+        
     APlayerController *PC = Cast<APlayerController>(InController);
     if (PC != nullptr)
     {

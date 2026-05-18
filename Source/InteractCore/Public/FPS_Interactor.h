@@ -17,7 +17,7 @@ enum class EInteractionTraceAxis : uint8
 /**
  *
  */
-UCLASS(Blueprintable, ClassGroup = (Core), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
 class INTERACTCORE_API UFPS_Interactor : public UDefaultInteractor
 {
 	GENERATED_BODY()
@@ -25,7 +25,6 @@ class INTERACTCORE_API UFPS_Interactor : public UDefaultInteractor
 protected:
 	virtual void OnControllerReady(AController *InController) override;
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const override;
-	virtual void CustomAdaptiveTick(float Threshould, float &OutTickRate) override;
 
 private:
 	/** Performs the interaction trace */

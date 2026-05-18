@@ -45,6 +45,17 @@ void UDefaultInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FAc
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+// Permissions
+bool UDefaultInteractor::CanHover(UObject *Interactable) const
+{
+    return Super::CanHover(Interactable) && K2_CanHover(Interactable);
+}
+bool UDefaultInteractor::CanInteract(UObject *Interactable) const
+{
+    return Super::CanInteract(Interactable) && K2_CanInteract(Interactable);
+}
+
+// TickInterval
 void UDefaultInteractor::UpdateTickByCameraRotation(float Threshold, float &OutTickRate)
 {
     OutTickRate = 0.033f;

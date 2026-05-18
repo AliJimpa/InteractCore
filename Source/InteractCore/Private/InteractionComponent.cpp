@@ -12,7 +12,6 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	
 }
 
 // Called when the game starts
@@ -39,6 +38,19 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 }
 
 // Functions
+void UInteractionComponent::SetInteractionActive(bool bEnable)
+{
+	if (bEnable)
+	{
+		Activate();
+		SetComponentTickEnabled(true);
+	}
+	else
+	{
+		Deactivate();
+		SetComponentTickEnabled(false);
+	}
+}
 FTransform UInteractionComponent::GetPivot() const
 {
 	if (PivotComponent)
@@ -77,7 +89,15 @@ void UInteractionComponent::UpdateInteraction()
 			}
 			if (NewFocused)
 			{
-				IInteractable::Execute_Hover(NewFocused.GetObject(), this, DetectedFocused);
+				UObject *TargetObject = NewFocused.GetObject();
+				if (CanHover(TargetObject))
+				{
+					IInteractable::Execute_Hover(TargetObject, this, DetectedFocused);
+				}
+				else
+				{
+					return;
+				}
 			}
 			CurrentInteractable = NewFocused;
 		}
