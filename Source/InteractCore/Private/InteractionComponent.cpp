@@ -12,7 +12,7 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	bIsImp_AdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractionComponent, K2_TryUpdateAdaptiveTick));
+	
 }
 
 // Called when the game starts
@@ -35,28 +35,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
-	if (bAdaptiveInterval)
-	{
-		float NewRate;
-		if (bIsImp_AdaptiveTick)
-		{
-			if (K2_TryUpdateAdaptiveTick(AdaptiveIntervalThreshold, NewRate))
-			{
-				PrimaryComponentTick.TickInterval = 1.f / NewRate;
-			}
-		}
-		else
-		{
-			if (TryUpdateAdaptiveTick(AdaptiveIntervalThreshold, NewRate))
-			{
-				PrimaryComponentTick.TickInterval = 1.f / NewRate;
-			}
-		}
-	}
-
-	PreHovering();
 	UpdateInteraction();
-	PostHovering();
 }
 
 // Functions
@@ -77,41 +56,6 @@ void UInteractionComponent::SetPivotToTransform(const FTransform &InValue)
 {
 	PivotComponent = nullptr;
 	PivotValue = InValue;
-}
-
-// TickInterval
-bool UInteractionComponent::TryUpdateAdaptiveTick(float Threshould, float &OutTickRate)
-{
-	OutTickRate = 0.033f;
-	// if (CameraManager == nullptr)
-	// {
-	// 	if (!MyController)
-	// 		return false;
-
-	// 	APlayerController *PC = Cast<APlayerController>(MyController);
-	// 	if (!PC)
-	// 		return false;
-
-	// 	CameraManager = PC->PlayerCameraManager;
-	// 	if (CameraManager == nullptr)
-	// 		return false;
-	// }
-
-	// const FRotator CameraRot = CameraManager->GetCameraRotation();
-
-	// const float Delta = CameraRot.GetManhattanDistance(LastCameraRotation);
-
-	// if (Delta > Threshould)
-	// {
-	// 	OutTickRate = 60;
-	// }
-	// else
-	// {
-	// 	OutTickRate = 10;
-	// }
-
-	// LastCameraRotation = CameraRot;
-	return true;
 }
 
 // Core Interaction Logic

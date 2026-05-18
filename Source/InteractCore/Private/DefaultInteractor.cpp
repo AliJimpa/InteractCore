@@ -2,77 +2,120 @@
 
 #include "DefaultInteractor.h"
 
-bool UDefaultInteractor::PerformSingleTrace(FInteractionData &OutData)
+UDefaultInteractor::UDefaultInteractor() : Super()
 {
-    FASTPRINT("C++");
-    AActor *Owner = GetOwner();
-    if (!Owner)
-        return false;
-
-    FVector Start = Owner->GetActorLocation();
-    FVector Forward = Owner->GetActorForwardVector();
-    FVector End = Start + Forward * 500.f;
-
-    FHitResult Hit;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(Owner);
-
-    bool bHit = GetWorld()->LineTraceSingleByChannel(
-        Hit,
-        Start,
-        End,
-        ECC_Visibility,
-        Params);
-
-    if (bHit && Hit.bBlockingHit)
-    {
-        OutData.SetHit(0, Hit);
-        return true;
-    }
-
-    return false;
+    bIsImplementCustomAdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteractor, K2_CustomAdaptiveTick));
 }
 
-bool UDefaultInteractor::PerformMultiTrace(FInteractionData &OutData)
+void UDefaultInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
-    AActor *Owner = GetOwner();
-    if (!Owner)
-        return false;
-
-    FVector Start = Owner->GetActorLocation();
-    FVector End = Start + Owner->GetActorForwardVector() * 500.f;
-
-    TArray<FHitResult> Hits;
-
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(Owner);
-
-    bool bHit = GetWorld()->SweepMultiByChannel(
-        Hits,
-        Start,
-        End,
-        FQuat::Identity,
-        ECC_Visibility,
-        FCollisionShape::MakeSphere(50.f),
-        Params);
-
-    if (!bHit)
-        return false;
-
-    int32 Count = FMath::Min(Hits.Num(), MAXHITS);
-
-    for (int32 i = 0; i < Count; ++i)
+    if (bDynamicInterval)
     {
-        if (Hits[i].bBlockingHit)
+        float NewTickInterval;
+        switch (AdaptiveTickMode)
         {
-            OutData.SetHit(i, Hits[i]);
+        case EInteractionAdaptiveTickMode::CameraRotation:
+            UpdateTickByCameraRotation(ThresholdCameraRotation, NewTickInterval);
+            break;
+
+        case EInteractionAdaptiveTickMode::OwnerVelocity:
+            UpdateTickByOwnerMovement(ThresholdOwnerVelocity, NewTickInterval);
+            break;
+
+        case EInteractionAdaptiveTickMode::MouseMovement:
+            UpdateTickByMouse(ThresholdMouseMovement, NewTickInterval);
+            break;
+
+        default:
+            if (bIsImplementCustomAdaptiveTick)
+            {
+                K2_CustomAdaptiveTick(ThresholdCustom, NewTickInterval);
+            }
+            else
+            {
+                CustomAdaptiveTick(ThresholdCustom, NewTickInterval);
+            }
+            break;
         }
+
+        if (PrimaryComponentTick.TickInterval != NewTickInterval)
+            PrimaryComponentTick.TickInterval = NewTickInterval;
     }
 
-    return OutData.HasAnyRecord();
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-const FInteractionRecord *UDefaultInteractor::SelectInteractionTarget(const FInteractionData &HoverData)
+void UDefaultInteractor::UpdateTickByCameraRotation(float Threshold, float &OutTickRate)
 {
-    return nullptr;
+    OutTickRate = 0.033f;
+
+    if (!CameraManager)
+    {
+        APlayerController *PC = GetWorld()->GetFirstPlayerController();
+        if (!PC)
+            return;
+
+        CameraManager = PC->PlayerCameraManager;
+        if (!CameraManager)
+            return;
+    }
+
+    const FRotator CameraRot = CameraManager->GetCameraRotation();
+    const float Delta = CameraRot.GetManhattanDistance(LastCameraRotation);
+
+    OutTickRate = (Delta > Threshold) ? FastTickRate : SlowTickRate;
+
+    LastCameraRotation = CameraRot;
+}
+
+void UDefaultInteractor::UpdateTickByOwnerMovement(float Threshold, float &OutTickRate)
+{
+    OutTickRate = SlowTickRate;
+
+    AActor *Owner = GetOwner();
+    if (!Owner)
+        return;
+
+    const float Speed = Owner->GetVelocity().Size();
+
+    if (Speed > Threshold)
+    {
+        OutTickRate = FastTickRate;
+    }
+    else
+    {
+        OutTickRate = SlowTickRate;
+    }
+
+    return;
+}
+
+void UDefaultInteractor::UpdateTickByMouse(int32 Threshold, float &OutTickRate)
+{
+    OutTickRate = SlowTickRate;
+
+    APlayerController *PC = GetWorld()->GetFirstPlayerController();
+    if (!PC)
+        return;
+
+    float X, Y;
+    if (!PC->GetMousePosition(X, Y))
+        return;
+
+    FVector2D Current(X, Y);
+
+    const float Delta = FVector2D::Distance(Current, LastMousePosition);
+
+    if (Delta > Threshold)
+    {
+        OutTickRate = FastTickRate;
+    }
+    else
+    {
+        OutTickRate = SlowTickRate;
+    }
+
+    LastMousePosition = Current;
+
+    return;
 }

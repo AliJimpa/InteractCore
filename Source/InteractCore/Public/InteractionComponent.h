@@ -32,25 +32,6 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
-UENUM()
-enum class EInteractionTickMode : uint8
-{
-	EveryFrame UMETA(
-		DisplayName = "Every Frame",
-		ToolTip = "Run the interaction trace every frame. Highest responsiveness but most expensive."),
-
-	FixedInterval UMETA(
-		DisplayName = "Fixed Interval",
-		ToolTip = "Run the interaction trace at a fixed time interval. Good balance between responsiveness and performance."),
-
-	AdaptiveInterval UMETA(
-		DisplayName = "Adaptive Interval",
-		ToolTip = "Adjust trace frequency depending on camera movement."),
-	CameraAdaptive UMETA(
-		DisplayName = "Camera Adaptive",
-		ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle.")
-};
-
 UCLASS(Abstract)
 class INTERACTCORE_API UInteractionComponent : public UActorComponent
 {
@@ -72,10 +53,7 @@ protected:
 	 * @param InController Controller associated with this component's owner. May be null in some cases.
 	 */
 	virtual void OnControllerReady(AController *InController) PURE_VIRTUAL(UInteractionComponent::OnControllerReady);
-	virtual void PreHovering() PURE_VIRTUAL(UInteractionComponent::PreHovering);
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
-	virtual void PostHovering() PURE_VIRTUAL(UInteractionComponent::PostHovering);
-	virtual bool TryUpdateAdaptiveTick(float Threshould, float &OutTickRate);
 
 public:
 	// Called every frame
@@ -91,10 +69,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> PivotComponent;
 	FTransform PivotValue = FTransform::Identity;
-
-	bool bIsImp_AdaptiveTick = false;
-	// TObjectPtr<APlayerCameraManager> CameraManager;
-	// FRotator LastCameraRotation;
 
 	void SetupInteractionInput(AController *Controller);
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
@@ -139,17 +113,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction", meta = (DisplayName = "Set Pivot (Transform)", ToolTip = "Sets a fixed world transform as the pivot. Clears any assigned PivotComponent."))
 	void SetPivotToTransform(const FTransform &InValue);
 
-protected:
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
-	bool K2_TryUpdateAdaptiveTick(float Threshould, UPARAM(ref) float &OutTickRate);
-
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle."))
-	bool bAdaptiveInterval = false;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bAdaptiveInterval", EditConditionHides, ClampMin = "0.001"))
-	float AdaptiveIntervalThreshold = 0.03f;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
 	bool bInteractionInputBound = true;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Input", meta = (EditCondition = "bInteractionInputBound == true", EditConditionHides))
