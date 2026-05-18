@@ -2,25 +2,31 @@
 
 #include "FocusedInteractionComponent.h"
 
-bool UFocusedInteractionComponent::TryGetDetectedFocused(AController *Controller, FHitResult &OutHit) const
+void UFocusedInteractionComponent::OnControllerReady(AController *InController)
 {
-    FVector Start;
-    FVector End;
+    Super::OnControllerReady(InController);
 
-    APlayerController *PC = Cast<APlayerController>(Controller);
-    if (!PC)
+    APlayerController *PC = Cast<APlayerController>(InController);
+    if (PC != nullptr)
     {
-        LOG_WARNING("Pawn has no PlayerController yet");
-        return false;
+        // APlayerCameraManager *CameraManager = PC->PlayerCameraManager;
+        FVector CameraLocation;
+        FRotator CameraRotation;
+        PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+        FTransform CameraTransform;
+        CameraTransform.SetLocation(CameraLocation);
+        CameraTransform.SetRotation(CameraRotation.Quaternion());
+        CameraTransform.SetScale3D(FVector(1.f));
+        SetPivotToTransform(CameraTransform);
     }
+}
 
-    FVector CameraLocation;
-    FRotator CameraRotation;
-
-    PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
-    Start = CameraLocation;
-    End = Start + (CameraRotation.Vector() * 500.f); // 500 = trace distance
+bool UFocusedInteractionComponent::TryGetDetectedFocused(FHitResult &OutHit) const
+{
+    const FTransform CameraTransform = GetPivot();
+    const FVector Start = CameraTransform.GetLocation();
+    const FVector Forward = CameraTransform.GetUnitAxis(EAxis::X);
+    const FVector End = Start + (Forward * 500.f); // 500 = trace distance
 
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(GetOwner());

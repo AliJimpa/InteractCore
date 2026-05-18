@@ -15,5 +15,6 @@ class INTERACTCORE_API UFocusedInteractionComponent : public UInteractionCompone
 	GENERATED_BODY()
 
 protected:
-	virtual bool TryGetDetectedFocused(AController *Controller,FHitResult &OutHit) const override;
+	virtual void OnControllerReady(AController *InController) override;
+	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const override;
 };

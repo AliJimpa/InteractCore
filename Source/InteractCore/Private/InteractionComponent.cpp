@@ -21,11 +21,12 @@ void UInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	MyController = ResolveControllerFromOwnership();
+	AController *Controller = ResolveControllerFromOwnership();
 	if (bInteractionInputBound)
 	{
-		SetupInteractionInput(MyController);
+		SetupInteractionInput(Controller);
 	}
+	OnControllerReady(Controller);
 }
 
 // Called every frame
@@ -58,38 +59,58 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	PostHovering();
 }
 
+// Functions
+FTransform UInteractionComponent::GetPivot() const
+{
+	if (PivotComponent)
+	{
+		return PivotComponent->GetComponentTransform();
+	}
+
+	return PivotValue;
+}
+void UInteractionComponent::SetPivotToComponent(USceneComponent *InComponent)
+{
+	PivotComponent = InComponent;
+}
+void UInteractionComponent::SetPivotToTransform(const FTransform &InValue)
+{
+	PivotComponent = nullptr;
+	PivotValue = InValue;
+}
+
 // TickInterval
 bool UInteractionComponent::TryUpdateAdaptiveTick(float Threshould, float &OutTickRate)
 {
 	OutTickRate = 0.033f;
-	if (CameraManager == nullptr)
-	{
-		if (!MyController)
-			return false;
+	// if (CameraManager == nullptr)
+	// {
+	// 	if (!MyController)
+	// 		return false;
 
-		APlayerController *PC = Cast<APlayerController>(MyController);
-		if (!PC)
-			return false;
+	// 	APlayerController *PC = Cast<APlayerController>(MyController);
+	// 	if (!PC)
+	// 		return false;
 
-		CameraManager = PC->PlayerCameraManager;
-		if (CameraManager == nullptr)
-			return false;
-	}
+	// 	CameraManager = PC->PlayerCameraManager;
+	// 	if (CameraManager == nullptr)
+	// 		return false;
+	// }
 
-	const FRotator CameraRot = CameraManager->GetCameraRotation();
+	// const FRotator CameraRot = CameraManager->GetCameraRotation();
 
-	const float Delta = CameraRot.GetManhattanDistance(LastCameraRotation);
+	// const float Delta = CameraRot.GetManhattanDistance(LastCameraRotation);
 
-	if (Delta > Threshould)
-	{
-		OutTickRate = 60;
-	}
-	else
-	{
-		OutTickRate = 10;
-	}
+	// if (Delta > Threshould)
+	// {
+	// 	OutTickRate = 60;
+	// }
+	// else
+	// {
+	// 	OutTickRate = 10;
+	// }
 
-	LastCameraRotation = CameraRot;
+	// LastCameraRotation = CameraRot;
 	return true;
 }
 
@@ -98,7 +119,7 @@ void UInteractionComponent::UpdateInteraction()
 {
 	FHitResult DetectedFocused;
 	TScriptInterface<IInteractable> NewFocused;
-	if (TryGetDetectedFocused(MyController, DetectedFocused))
+	if (TryGetDetectedFocused(DetectedFocused))
 	{
 		// valid hit
 		NewFocused = ResolveInteractableFromHit(DetectedFocused);
