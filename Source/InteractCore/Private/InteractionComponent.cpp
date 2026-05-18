@@ -13,7 +13,6 @@ UInteractionComponent::UInteractionComponent()
 
 	// ...
 	bIsImp_AdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractionComponent, K2_TryUpdateAdaptiveTick));
-	bIsImp_PivotComp = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractionComponent, K2_GetInteractionPivotLocation));
 }
 
 // Called when the game starts
@@ -22,13 +21,10 @@ void UInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	AController *Controller = ResolveControllerFromOwnership();
-
-	CacheCameraManager(Controller);
-
+	MyController = ResolveControllerFromOwnership();
 	if (bInteractionInputBound)
 	{
-		SetupInteractionInput(Controller);
+		SetupInteractionInput(MyController);
 	}
 }
 
@@ -62,52 +58,23 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	PostHovering();
 }
 
-// Pivot Component
-FVector UInteractionComponent::GetPivot() const
-{
-	if (bIsImp_PivotComp)
-	{
-		return K2_GetInteractionPivotLocation();
-	}
-	else
-	{
-		return GetInteractionPivotLocation();
-	}
-}
-
-void UInteractionComponent::CacheCameraManager(AController *Controller)
-{
-	if (CameraManager)
-		return;
-
-	if (!Controller)
-	{
-		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
-		return;
-	}
-
-	APlayerController *PC = Cast<APlayerController>(Controller);
-	if (!PC)
-	{
-		LOG_WARNING("Pawn has no PlayerController yet");
-		return;
-	}
-
-	CameraManager = PC->PlayerCameraManager;
-}
-FVector UInteractionComponent::GetInteractionPivotLocation() const
-{
-	if (!CameraManager)
-		return FVector::ZeroVector;
-	return CameraManager->GetCameraLocation();
-}
-
 // TickInterval
 bool UInteractionComponent::TryUpdateAdaptiveTick(float Threshould, float &OutTickRate)
 {
 	OutTickRate = 0.033f;
-	if (!CameraManager)
-		return false;
+	if (CameraManager == nullptr)
+	{
+		if (!MyController)
+			return false;
+
+		APlayerController *PC = Cast<APlayerController>(MyController);
+		if (!PC)
+			return false;
+
+		CameraManager = PC->PlayerCameraManager;
+		if (CameraManager == nullptr)
+			return false;
+	}
 
 	const FRotator CameraRot = CameraManager->GetCameraRotation();
 
@@ -131,30 +98,30 @@ void UInteractionComponent::UpdateInteraction()
 {
 	FHitResult DetectedFocused;
 	TScriptInterface<IInteractable> NewFocused;
-	if (TryGetDetectedFocused(DetectedFocused))
+	if (TryGetDetectedFocused(MyController, DetectedFocused))
 	{
 		// valid hit
 		NewFocused = ResolveInteractableFromHit(DetectedFocused);
 
 		// UpdateNewFocused
-		if (NewFocused != CurrentFocused)
+		if (NewFocused != CurrentInteractable)
 		{
-			if (CurrentFocused)
+			if (CurrentInteractable)
 			{
-				IInteractable::Execute_UnHover(CurrentFocused.GetObject(), this);
+				IInteractable::Execute_UnHover(CurrentInteractable.GetObject(), this);
 			}
 			if (NewFocused)
 			{
 				IInteractable::Execute_Hover(NewFocused.GetObject(), this, DetectedFocused);
 			}
-			CurrentFocused = NewFocused;
+			CurrentInteractable = NewFocused;
 		}
 	}
 	else
 	{
-		if (CurrentFocused != nullptr)
+		if (CurrentInteractable != nullptr)
 		{
-			IInteractable::Execute_UnHover(CurrentFocused.GetObject(), this);
+			IInteractable::Execute_UnHover(CurrentInteractable.GetObject(), this);
 		}
 	}
 }
@@ -291,7 +258,7 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 
 	case ETriggerEvent::Triggered:
 		// HandleInteractTriggered();
-		IInteractable::Execute_Interact(GetCurrentFocused().GetObject(), this);
+		IInteractable::Execute_Interact(GetCurrentInteractable().GetObject(), this);
 		break;
 
 	case ETriggerEvent::Ongoing:

@@ -45,7 +45,10 @@ enum class EInteractionTickMode : uint8
 
 	AdaptiveInterval UMETA(
 		DisplayName = "Adaptive Interval",
-		ToolTip = "Automatically adjust trace frequency based on your logic. Exam: Faster(30fps) when the player moves the camera and slower when idle(10fps).")
+		ToolTip = "Adjust trace frequency depending on camera movement."),
+	CameraAdaptive UMETA(
+		DisplayName = "Camera Adaptive",
+		ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle.")
 };
 
 UCLASS(Abstract)
@@ -61,29 +64,27 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override final;
 	virtual void PreHovering() PURE_VIRTUAL(UInteractionComponent::PreHovering);
-	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
+	virtual bool TryGetDetectedFocused(AController *Controller, FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
 	virtual void PostHovering() PURE_VIRTUAL(UInteractionComponent::PostHovering);
 	virtual bool TryUpdateAdaptiveTick(float Threshould, float &OutTickRate);
-	FVector GetInteractionPivotLocation() const;
 
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override final;
 
 private:
-	TScriptInterface<IInteractable> CurrentFocused = nullptr;
+	TScriptInterface<IInteractable> CurrentInteractable = nullptr;
 	void UpdateInteraction();
 	TScriptInterface<IInteractable> ResolveInteractableFromHit(const FHitResult &Hit) const;
 
-	bool bIsImp_AdaptiveTick = false;
+	TObjectPtr<AController> MyController;
+	AController *ResolveControllerFromOwnership() const;
 
+	bool bIsImp_AdaptiveTick = false;
 	TObjectPtr<APlayerCameraManager> CameraManager;
 	FRotator LastCameraRotation;
-	bool bIsImp_PivotComp = false;
-	void CacheCameraManager(AController *Controller);
 
 	void SetupInteractionInput(AController *Controller);
-	AController *ResolveControllerFromOwnership() const;
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
 	void OnInteractInput(const FInputActionInstance &Instance);
 
@@ -91,15 +92,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
 	EInteractionSearchMode GetMode() const { return DetectionMode; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
-	const TScriptInterface<IInteractable> GetCurrentFocused() const { return CurrentFocused; }
+	const TScriptInterface<IInteractable> GetCurrentInteractable() const { return CurrentInteractable; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
-	FVector GetPivot() const;
+	virtual FTransform GetPivot() const PURE_VIRTUAL(UInteractionComponent::GetPivot, return FTransform::Identity;);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
 	bool K2_TryUpdateAdaptiveTick(float Threshould, UPARAM(ref) float &OutTickRate);
-	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "Interaction|Override")
-	FVector K2_GetInteractionPivotLocation() const;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")

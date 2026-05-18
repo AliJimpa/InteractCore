@@ -7,11 +7,13 @@
 #include "FocusedInteractionComponent.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class INTERACTCORE_API UFocusedInteractionComponent : public UInteractionComponent
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual bool TryGetDetectedFocused(AController *Controller,FHitResult &OutHit) const override;
 };
