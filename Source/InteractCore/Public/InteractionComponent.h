@@ -32,6 +32,22 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
+UENUM()
+enum class EInteractionTickMode : uint8
+{
+	EveryFrame UMETA(
+		DisplayName = "Every Frame",
+		ToolTip = "Run the interaction trace every frame. Highest responsiveness but most expensive."),
+
+	FixedInterval UMETA(
+		DisplayName = "Fixed Interval",
+		ToolTip = "Run the interaction trace at a fixed time interval. Good balance between responsiveness and performance."),
+
+	AdaptiveInterval UMETA(
+		DisplayName = "Adaptive Interval",
+		ToolTip = "Automatically adjust trace frequency based on your logic. Exam: Faster(30fps) when the player moves the camera and slower when idle(10fps).")
+};
+
 UCLASS(Abstract)
 class INTERACTCORE_API UInteractionComponent : public UActorComponent
 {
@@ -43,20 +59,30 @@ public:
 
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override final;
 	virtual void PreHovering() PURE_VIRTUAL(UInteractionComponent::PreHovering);
-	virtual bool GetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::GetDetectedFocused, return false;);
+	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
 	virtual void PostHovering() PURE_VIRTUAL(UInteractionComponent::PostHovering);
+	virtual bool TryUpdateAdaptiveTick(float Threshould, float &OutTickRate);
+	FVector GetInteractionPivotLocation() const;
 
 public:
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override final;
 
 private:
 	TScriptInterface<IInteractable> CurrentFocused = nullptr;
 	void UpdateInteraction();
 	TScriptInterface<IInteractable> ResolveInteractableFromHit(const FHitResult &Hit) const;
-	void SetupInteractionInput();
+
+	bool bIsImp_AdaptiveTick = false;
+
+	TObjectPtr<APlayerCameraManager> CameraManager;
+	FRotator LastCameraRotation;
+	bool bIsImp_PivotComp = false;
+	void CacheCameraManager(AController *Controller);
+
+	void SetupInteractionInput(AController *Controller);
 	AController *ResolveControllerFromOwnership() const;
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
 	void OnInteractInput(const FInputActionInstance &Instance);
@@ -66,16 +92,24 @@ public:
 	EInteractionSearchMode GetMode() const { return DetectionMode; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
 	const TScriptInterface<IInteractable> GetCurrentFocused() const { return CurrentFocused; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
+	FVector GetPivot() const;
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override")
+	bool K2_TryUpdateAdaptiveTick(float Threshould, UPARAM(ref) float &OutTickRate);
+	UFUNCTION(BlueprintImplementableEvent, BlueprintPure, Category = "Interaction|Override")
+	FVector K2_GetInteractionPivotLocation() const;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	EInteractionSearchMode DetectionMode = EInteractionSearchMode::ActorAndComponent;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick")
-	bool bUseCustomTickInterval = false;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bUseCustomTickInterval"), meta = (ClampMin = "1", ClampMax = "120"))
-	float InteractionTraceRate = 20;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle."))
+	bool bAdaptiveInterval = false;
+	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bAdaptiveInterval", EditConditionHides, ClampMin = "0.001"))
+	float AdaptiveIntervalThreshold = 0.03f;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
 	bool bInteractionInputBound = true;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
+	UPROPERTY(EditAnywhere, Category = "Interaction|Input", meta = (EditCondition = "bInteractionInputBound == true", EditConditionHides))
 	UInputAction *InteractionInput;
 };

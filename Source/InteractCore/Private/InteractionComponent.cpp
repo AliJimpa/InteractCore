@@ -12,6 +12,8 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+	bIsImp_AdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractionComponent, K2_TryUpdateAdaptiveTick));
+	bIsImp_PivotComp = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractionComponent, K2_GetInteractionPivotLocation));
 }
 
 // Called when the game starts
@@ -20,13 +22,13 @@ void UInteractionComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	if (bUseCustomTickInterval)
-	{
-		PrimaryComponentTick.TickInterval = 1.f / InteractionTraceRate;
-	}
+	AController *Controller = ResolveControllerFromOwnership();
+
+	CacheCameraManager(Controller);
+
 	if (bInteractionInputBound)
 	{
-		SetupInteractionInput();
+		SetupInteractionInput(Controller);
 	}
 }
 
@@ -36,10 +38,92 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	if (bAdaptiveInterval)
+	{
+		float NewRate;
+		if (bIsImp_AdaptiveTick)
+		{
+			if (K2_TryUpdateAdaptiveTick(AdaptiveIntervalThreshold, NewRate))
+			{
+				PrimaryComponentTick.TickInterval = 1.f / NewRate;
+			}
+		}
+		else
+		{
+			if (TryUpdateAdaptiveTick(AdaptiveIntervalThreshold, NewRate))
+			{
+				PrimaryComponentTick.TickInterval = 1.f / NewRate;
+			}
+		}
+	}
 
-	// PreProcess();
+	PreHovering();
 	UpdateInteraction();
-	// PostProcess();
+	PostHovering();
+}
+
+// Pivot Component
+FVector UInteractionComponent::GetPivot() const
+{
+	if (bIsImp_PivotComp)
+	{
+		return K2_GetInteractionPivotLocation();
+	}
+	else
+	{
+		return GetInteractionPivotLocation();
+	}
+}
+
+void UInteractionComponent::CacheCameraManager(AController *Controller)
+{
+	if (CameraManager)
+		return;
+
+	if (!Controller)
+	{
+		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
+		return;
+	}
+
+	APlayerController *PC = Cast<APlayerController>(Controller);
+	if (!PC)
+	{
+		LOG_WARNING("Pawn has no PlayerController yet");
+		return;
+	}
+
+	CameraManager = PC->PlayerCameraManager;
+}
+FVector UInteractionComponent::GetInteractionPivotLocation() const
+{
+	if (!CameraManager)
+		return FVector::ZeroVector;
+	return CameraManager->GetCameraLocation();
+}
+
+// TickInterval
+bool UInteractionComponent::TryUpdateAdaptiveTick(float Threshould, float &OutTickRate)
+{
+	OutTickRate = 0.033f;
+	if (!CameraManager)
+		return false;
+
+	const FRotator CameraRot = CameraManager->GetCameraRotation();
+
+	const float Delta = CameraRot.GetManhattanDistance(LastCameraRotation);
+
+	if (Delta > Threshould)
+	{
+		OutTickRate = 60;
+	}
+	else
+	{
+		OutTickRate = 10;
+	}
+
+	LastCameraRotation = CameraRot;
+	return true;
 }
 
 // Core Interaction Logic
@@ -47,7 +131,7 @@ void UInteractionComponent::UpdateInteraction()
 {
 	FHitResult DetectedFocused;
 	TScriptInterface<IInteractable> NewFocused;
-	if (GetDetectedFocused(DetectedFocused))
+	if (TryGetDetectedFocused(DetectedFocused))
 	{
 		// valid hit
 		NewFocused = ResolveInteractableFromHit(DetectedFocused);
@@ -140,9 +224,8 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 }
 
 // Inputs
-void UInteractionComponent::SetupInteractionInput()
+void UInteractionComponent::SetupInteractionInput(AController *Controller)
 {
-	AController *Controller = ResolveControllerFromOwnership();
 	if (!Controller)
 	{
 		LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
@@ -208,6 +291,7 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 
 	case ETriggerEvent::Triggered:
 		// HandleInteractTriggered();
+		IInteractable::Execute_Interact(GetCurrentFocused().GetObject(), this);
 		break;
 
 	case ETriggerEvent::Ongoing:

@@ -11,7 +11,7 @@ void USphereInteractable::Hover_Implementation(UActorComponent *Provider, FHitRe
 void USphereInteractable::UnHover_Implementation(UActorComponent *Provider)
 {
 }
-void USphereInteractable::Interact_Implementation(UActorComponent *Provider, FHitResult Hit)
+void USphereInteractable::Interact_Implementation(UActorComponent *Provider)
 {
 }
 bool USphereInteractable::CanHover_Implementation() const

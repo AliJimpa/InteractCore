@@ -24,7 +24,7 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
     void UnHover(UActorComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
-    void Interact(UActorComponent *Provider, FHitResult Hit);
+    void Interact(UActorComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
     bool CanHover() const;
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
