@@ -71,6 +71,10 @@ void UInteractionComponent::SetPivotToTransform(const FTransform &InValue)
 }
 
 // Core Interaction Logic
+void UInteractionComponent::OnControllerReady(AController *InController)
+{
+	checkNoEntry();
+}
 void UInteractionComponent::UpdateInteraction()
 {
 	FHitResult DetectedFocused;

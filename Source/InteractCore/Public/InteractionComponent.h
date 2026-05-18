@@ -52,7 +52,7 @@ protected:
 	 *
 	 * @param InController Controller associated with this component's owner. May be null in some cases.
 	 */
-	virtual void OnControllerReady(AController *InController) PURE_VIRTUAL(UInteractionComponent::OnControllerReady,);
+	virtual void OnControllerReady(AController *InController);
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const PURE_VIRTUAL(UInteractionComponent::TryGetDetectedFocused, return false;);
 	virtual bool CanHover(UObject *Interactable) const PURE_VIRTUAL(UDefaultInteractor::CanHover, return true;);
 	virtual bool CanInteract(UObject *Interactable) const PURE_VIRTUAL(UDefaultInteractor::CustomAdaptiveTick, return true;);
