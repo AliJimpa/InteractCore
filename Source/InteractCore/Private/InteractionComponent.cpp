@@ -71,46 +71,52 @@ void UInteractionComponent::SetPivotToTransform(const FTransform &InValue)
 }
 
 // Core Interaction Logic
-void UInteractionComponent::OnControllerReady(AController *InController)
-{
-	checkNoEntry();
-}
 void UInteractionComponent::UpdateInteraction()
 {
-	FHitResult DetectedFocused;
-	TScriptInterface<IInteractable> NewFocused;
-	if (TryGetDetectedFocused(DetectedFocused))
-	{
-		// valid hit
-		NewFocused = ResolveInteractableFromHit(DetectedFocused);
+	FHitResult HitResult;
+	TScriptInterface<IInteractable> NewFocused = nullptr;
 
-		// UpdateNewFocused
-		if (NewFocused != CurrentInteractable)
-		{
-			if (CurrentInteractable)
-			{
-				IInteractable::Execute_UnHover(CurrentInteractable.GetObject(), this);
-			}
-			if (NewFocused)
-			{
-				UObject *TargetObject = NewFocused.GetObject();
-				if (CanHover(TargetObject))
-				{
-					IInteractable::Execute_Hover(TargetObject, this, DetectedFocused);
-				}
-				else
-				{
-					return;
-				}
-			}
-			CurrentInteractable = NewFocused;
-		}
-	}
-	else
+	if (TryGetDetectedFocused(HitResult))
 	{
-		if (CurrentInteractable != nullptr)
+		UObject *CurrentObject = CurrentInteractable.GetObject();
+		if (CurrentObject)
 		{
-			IInteractable::Execute_UnHover(CurrentInteractable.GetObject(), this);
+			if (HitResult.GetActor() == CurrentObject || HitResult.GetComponent() == CurrentObject)
+			{
+				return;
+			}
+		}
+
+		NewFocused = ResolveInteractableFromHit(HitResult);
+	}
+
+
+	if (NewFocused.GetObject() != CurrentInteractable.GetObject())
+	{
+		SetCurrentInteractable(NewFocused, HitResult);
+	}
+}
+void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInteractable> &NewInteractable, const FHitResult &HitResult)
+{
+	if (UObject *CurrentObject = CurrentInteractable.GetObject())
+	{
+		IInteractable::Execute_UnHover(CurrentObject, this);
+		//LOG_WARNING("UnHover");
+	}
+
+	CurrentInteractable = nullptr;
+
+	if (UObject *NewObject = NewInteractable.GetObject())
+	{
+		if (CanHover(NewObject))
+		{
+			CurrentInteractable = NewInteractable;
+			IInteractable::Execute_Hover(CurrentInteractable.GetObject(), this, HitResult);
+			//LOG_WARNING("Hover");
+		}
+		else
+		{
+			//LOG_WARNING("Can't Hover");
 		}
 	}
 }
@@ -118,12 +124,18 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 {
 	AActor *HitActor = Hit.GetActor();
 	UActorComponent *HitComp = Hit.GetComponent();
+	static const UClass *InteractableClass = UInteractable::StaticClass();
 
 	auto MakeInteractableInterface = [](UObject *Object) -> TScriptInterface<IInteractable>
 	{
-		TScriptInterface<IInteractable> Result;
+		TScriptInterface<IInteractable> Result = nullptr;
 
-		if (Object && Object->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+		if (!Object)
+		{
+			return Result;
+		}
+
+		if (Object->GetClass()->ImplementsInterface(InteractableClass))
 		{
 			Result.SetObject(Object);
 			Result.SetInterface(Cast<IInteractable>(Object));
@@ -147,17 +159,14 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 		{
 			return Result;
 		}
-
 		return MakeInteractableInterface(HitComp);
 	}
 
 	case EInteractionSearchMode::PreferActorFallbackToComponent:
 	{
-		TScriptInterface<IInteractable> Result = MakeInteractableInterface(HitActor);
+		auto Result = MakeInteractableInterface(HitActor);
 		if (Result)
-		{
 			return Result;
-		}
 
 		if (HitActor)
 		{
@@ -166,17 +175,15 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 			{
 				Result = MakeInteractableInterface(Comp);
 				if (Result)
-				{
 					return Result;
-				}
 			}
 		}
-
-		return nullptr;
-	}
+		return TScriptInterface<IInteractable>();
 	}
 
-	return nullptr;
+	default:
+		return TScriptInterface<IInteractable>();
+	}
 }
 
 // Inputs
