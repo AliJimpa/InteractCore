@@ -4,10 +4,8 @@
 #include "UObject/Interface.h"
 #include "Interactable.generated.h"
 
-class UInteractor;
-
 // UINTERFACE is required, but no Blueprint exposure
-UINTERFACE(Blueprintable)
+UINTERFACE(Blueprintable, BlueprintType)
 class INTERACTCORE_API UInteractable : public UInterface
 {
     GENERATED_BODY()
