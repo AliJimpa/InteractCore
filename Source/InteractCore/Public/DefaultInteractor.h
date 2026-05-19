@@ -74,7 +74,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ToolTip = "Select what input/activity drives the adaptive tick rate."))
 	EInteractionAdaptiveTickTrigger AdaptiveTickMode = EInteractionAdaptiveTickTrigger::PivotRotation;
 	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
-	float FastTickRate = 0.016f; // ~60fps
+	float FastTickRate = 0.033f; // ~30fps
 	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
 	float SlowTickRate = 0.1f; // 10fps
 

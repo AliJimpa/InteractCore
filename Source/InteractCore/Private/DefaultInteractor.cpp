@@ -45,40 +45,36 @@ void UDefaultInteractor::UpdateAdaptiveTickRate()
     switch (AdaptiveTickMode)
     {
     case EInteractionAdaptiveTickTrigger::PivotRotation:
-    {
+
         float AngleDelta = CurrentPivot.GetRotation().AngularDistance(PreviousPivotTransform.GetRotation());
         bTriggerFastTick = FMath::RadiansToDegrees(AngleDelta) > RotationThreshold;
-    }
-    break;
+        break;
 
     case EInteractionAdaptiveTickTrigger::PivotPosition:
-    {
+
         float DistDelta = FVector::Dist(CurrentPivot.GetLocation(), PreviousPivotTransform.GetLocation());
         bTriggerFastTick = DistDelta > PositionThreshold;
-    }
-    break;
+        break;
 
     case EInteractionAdaptiveTickTrigger::PivotTransform:
-    {
+
         float AngleDelta = CurrentPivot.GetRotation().AngularDistance(PreviousPivotTransform.GetRotation());
         float DistDelta = FVector::Dist(CurrentPivot.GetLocation(), PreviousPivotTransform.GetLocation());
         bTriggerFastTick = (AngleDelta > RotationThreshold) || (DistDelta > PositionThreshold);
-    }
-    break;
+        break;
 
     case EInteractionAdaptiveTickTrigger::OwnerVelocity:
-    {
+
         AActor *Owner = GetOwner();
         if (Owner)
         {
             // Check if actor is moving faster than the threshold
             bTriggerFastTick = Owner->GetVelocity().Size() > VelocityThreshold;
         }
-    }
-    break;
+        break;
 
     case EInteractionAdaptiveTickTrigger::MouseMovement:
-    {
+
         APlayerController *PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
         if (PC)
         {
@@ -90,8 +86,7 @@ void UDefaultInteractor::UpdateAdaptiveTickRate()
                 PreviousMousePosition = CurrentMousePos; // Update mouse state
             }
         }
-    }
-    break;
+        break;
 
     default:
         if (bIsImplementCustomAdaptiveTick)
