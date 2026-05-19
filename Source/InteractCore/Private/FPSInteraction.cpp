@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "FPS_Interactor.h"
+#include "FPSInteraction.h"
 #include "DrawDebugHelpers.h"
 
-void UFPS_Interactor::OnControllerReady(AController *InController)
+void UFPSInteraction::OnControllerReady(AController *InController)
 {
     if (InController == nullptr)
         return;
@@ -16,7 +16,7 @@ void UFPS_Interactor::OnControllerReady(AController *InController)
     SetPivotToComponent(PC->PlayerCameraManager->GetTransformComponent());
 }
 
-bool UFPS_Interactor::TryGetDetectedFocused(FHitResult &OutHit) const
+bool UFPSInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
 {
     UWorld *World = GetWorld();
     if (!World)
@@ -79,7 +79,7 @@ bool UFPS_Interactor::TryGetDetectedFocused(FHitResult &OutHit) const
 }
 
 // Functions
-FVector UFPS_Interactor::GetTraceDirection(const FTransform &Pivot) const
+FVector UFPSInteraction::GetTraceDirection(const FTransform &Pivot) const
 {
     switch (TraceAxis)
     {

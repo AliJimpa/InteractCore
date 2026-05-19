@@ -32,7 +32,13 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
-UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
+/**
+ * Base interaction component.
+ *
+ * Provides the core interface and functionality for any interaction system.
+ * Other interaction implementations should inherit from this class.
+ */
+UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Base class for all interaction systems."))
 class INTERACTCORE_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()

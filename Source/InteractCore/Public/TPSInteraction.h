@@ -3,22 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DefaultInteractor.h"
-#include "AreaInteractionComponent.generated.h"
+#include "DefaultInteraction.h"
+#include "TPSInteraction.generated.h"
 
 class USphereComponent;
 class UEnhancedPlayerInput;
 
 /**
- *
+ * Third‑Person interaction component.
+ * 
+ * Implements interaction behavior designed for third‑person games,
+ * usually using character forward traces or camera-assisted targeting.
  */
-UCLASS(ClassGroup = (Interaction), meta = (BlueprintSpawnableComponent))
-class INTERACTCORE_API UAreaInteractionComponent : public UDefaultInteractor
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "TPS Interaction", Tooltip = "Handles interaction logic for third-person perspectives."))
+class INTERACTCORE_API UTPSInteraction : public UDefaultInteraction
 {
 	GENERATED_BODY()
 
 public:
-	UAreaInteractionComponent();
+	UTPSInteraction();
 
 protected:
 	void BeginPlay2();

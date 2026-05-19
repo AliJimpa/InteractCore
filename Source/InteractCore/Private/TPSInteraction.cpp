@@ -1,18 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "AreaInteractionComponent.h"
+#include "TPSInteraction.h"
 #include "Components/SphereComponent.h"
 // #include "EnhancedInputComponent.h"
 // #include "GameFramework/PlayerController.h"
 #include "EnhancedPlayerInput.h"
 
-UAreaInteractionComponent::UAreaInteractionComponent()
+UTPSInteraction::UTPSInteraction()
 {
     DetectionSphere = CreateDefaultSubobject<USphereComponent>("InteractionSphere");
     DetectionSphere->SetSphereRadius(300.f);
 }
 
-void UAreaInteractionComponent::OnControllerReady(AController *InController)
+void UTPSInteraction::OnControllerReady(AController *InController)
 {
     Super::OnControllerReady(InController);
 
@@ -47,15 +47,15 @@ void UAreaInteractionComponent::OnControllerReady(AController *InController)
     }
 }
 
-void UAreaInteractionComponent::BeginPlay2()
+void UTPSInteraction::BeginPlay2()
 {
     Super::BeginPlay();
 
-    DetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &UAreaInteractionComponent::OnBeginOverlap);
-    DetectionSphere->OnComponentEndOverlap.AddDynamic(this, &UAreaInteractionComponent::OnEndOverlap);
+    DetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &UTPSInteraction::OnBeginOverlap);
+    DetectionSphere->OnComponentEndOverlap.AddDynamic(this, &UTPSInteraction::OnEndOverlap);
 }
 
-void UAreaInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+void UTPSInteraction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
     if (UseInputForHovering)
     {
@@ -68,12 +68,12 @@ void UAreaInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UAreaInteractionComponent::DetectCandidates()
+void UTPSInteraction::DetectCandidates()
 {
     // candidates already tracked by overlap events
 }
 
-void UAreaInteractionComponent::OnBeginOverlap(
+void UTPSInteraction::OnBeginOverlap(
     UPrimitiveComponent *OverlappedComponent,
     AActor *OtherActor,
     UPrimitiveComponent *OtherComp,
@@ -84,7 +84,7 @@ void UAreaInteractionComponent::OnBeginOverlap(
     CandidateActors.AddUnique(OtherActor);
 }
 
-void UAreaInteractionComponent::OnEndOverlap(
+void UTPSInteraction::OnEndOverlap(
     UPrimitiveComponent *OverlappedComponent,
     AActor *OtherActor,
     UPrimitiveComponent *OtherComp,
@@ -93,7 +93,7 @@ void UAreaInteractionComponent::OnEndOverlap(
     CandidateActors.Remove(OtherActor);
 }
 
-bool UAreaInteractionComponent::CanHover(UObject *Interactable) const
+bool UTPSInteraction::CanHover(UObject *Interactable) const
 {
     Super::CanHover(Interactable);
     if (UseInputForHovering)
@@ -102,7 +102,7 @@ bool UAreaInteractionComponent::CanHover(UObject *Interactable) const
     return true;
 }
 
-bool UAreaInteractionComponent::IsHoverInputPressed() const
+bool UTPSInteraction::IsHoverInputPressed() const
 {
     if (!HoverInput)
     {

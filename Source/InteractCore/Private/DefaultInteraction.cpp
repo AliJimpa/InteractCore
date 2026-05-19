@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DefaultInteractor.h"
+#include "DefaultInteraction.h"
 
-UDefaultInteractor::UDefaultInteractor() : Super()
+UDefaultInteraction::UDefaultInteraction() : Super()
 {
-    bIsImplementCustomAdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteractor, K2_CustomAdaptiveTick));
-    bIsImplememtCanHover = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteractor, K2_CanHover));
-    bIsImplememtCanInteract = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteractor, K2_CanInteract));
+    bIsImplementCustomAdaptiveTick = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteraction, K2_CustomAdaptiveTick));
+    bIsImplememtCanHover = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteraction, K2_CanHover));
+    bIsImplememtCanInteract = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UDefaultInteraction, K2_CanInteract));
 }
 
-void UDefaultInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+void UDefaultInteraction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
     if (bDynamicInterval)
     {
@@ -20,13 +20,13 @@ void UDefaultInteractor::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 }
 
 // Permissions
-bool UDefaultInteractor::CanHover(UObject *Interactable) const
+bool UDefaultInteraction::CanHover(UObject *Interactable) const
 {
     if (bIsImplememtCanHover)
         return K2_CanHover(Interactable);
     return true;
 }
-bool UDefaultInteractor::CanInteract(UObject *Interactable) const
+bool UDefaultInteraction::CanInteract(UObject *Interactable) const
 {
     if (bIsImplememtCanInteract)
         return K2_CanInteract(Interactable);
@@ -34,7 +34,7 @@ bool UDefaultInteractor::CanInteract(UObject *Interactable) const
 }
 
 // TickInterval
-void UDefaultInteractor::UpdateAdaptiveTickRate()
+void UDefaultInteraction::UpdateAdaptiveTickRate()
 {
     // 1. Get current states
     const FTransform CurrentPivot = GetPivot();

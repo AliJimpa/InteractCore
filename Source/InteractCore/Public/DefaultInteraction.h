@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InteractionComponent.h"
-#include "DefaultInteractor.generated.h"
+#include "DefaultInteraction.generated.h"
 
 UENUM()
 enum class EInteractionAdaptiveTickTrigger : uint8
@@ -33,20 +33,25 @@ enum class EInteractionAdaptiveTickTrigger : uint8
 		DisplayName = "Custom",
 		ToolTip = "Use a custom adaptive tick rule implemented by the component."),
 };
+
 /**
+ * Default interaction implementation layer.
  *
+ * Extends UInteractionComponent and provides shared logic used by
+ * common interaction types such as FPS or TPS interaction systems.
+ * This class is not intended to be used directly.
  */
-UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
-class INTERACTCORE_API UDefaultInteractor : public UInteractionComponent
+UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Core framework for standard interactions."))
+class INTERACTCORE_API UDefaultInteraction : public UInteractionComponent
 {
 	GENERATED_BODY()
 
 public:
-	UDefaultInteractor();
+	UDefaultInteraction();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 protected:
-	virtual bool CustomAdaptiveTick(float Threshould) PURE_VIRTUAL(UDefaultInteractor::CustomAdaptiveTick, return false;);
+	virtual bool CustomAdaptiveTick(float Threshould) PURE_VIRTUAL(UDefaultInteraction::CustomAdaptiveTick, return false;);
 	virtual bool CanHover(UObject *Interactable) const override;
 	virtual bool CanInteract(UObject *Interactable) const override;
 

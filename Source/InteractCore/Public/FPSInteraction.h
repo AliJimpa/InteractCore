@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DefaultInteractor.h"
-#include "FPS_Interactor.generated.h"
+#include "DefaultInteraction.h"
+#include "FPSInteraction.generated.h"
 
 UENUM()
 enum class EInteractionTraceAxis : uint8
@@ -23,10 +23,13 @@ enum class EDebugDrawType : uint8
 };
 
 /**
- *
+ * First‑Person interaction component.
+ * 
+ * Implements interaction behavior designed for first‑person games,
+ * typically using camera-based traces and direct player view targeting.
  */
-UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent))
-class INTERACTCORE_API UFPS_Interactor : public UDefaultInteractor
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent , DisplayName = "FPS Interaction", Tooltip = "Handles interaction logic for first-person perspectives."))
+class INTERACTCORE_API UFPSInteraction : public UDefaultInteraction
 {
 	GENERATED_BODY()
 
