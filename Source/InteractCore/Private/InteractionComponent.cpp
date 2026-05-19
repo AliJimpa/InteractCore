@@ -197,6 +197,7 @@ void UInteractionComponent::SetupInteractionInput(AController *Controller)
 
 	if (!Controller->IsLocalController())
 	{
+		LOG_ERROR("Controller should be LocalController");
 		return;
 	}
 

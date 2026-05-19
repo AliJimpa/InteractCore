@@ -6,12 +6,20 @@
 #include "DefaultInteractor.h"
 #include "FPS_Interactor.generated.h"
 
-UENUM(BlueprintType)
+UENUM()
 enum class EInteractionTraceAxis : uint8
 {
 	Forward UMETA(DisplayName = "Forward (X)"),
 	Right UMETA(DisplayName = "Right (Y)"),
 	Up UMETA(DisplayName = "Up (Z)")
+};
+UENUM()
+enum class EDebugDrawType : uint8
+{
+	None UMETA(DisplayName = "None"),
+	Line UMETA(DisplayName = "Line"),
+	Sphere UMETA(DisplayName = "Sphere"),
+	LineAndSphere UMETA(DisplayName = "Line + Sphere")
 };
 
 /**
@@ -27,29 +35,22 @@ protected:
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const override;
 
 private:
-	/** Performs the interaction trace */
 	bool PerformInteractionTrace(FHitResult &OutHit) const;
-
-	/** Returns the axis direction used for tracing */
 	FVector GetTraceDirection(const FTransform &Pivot) const;
 
 protected:
-	/** Maximum distance of the interaction trace */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Trace", meta = (ClampMin = "100"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
+	FVector Offcet = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (ClampMin = "100", BlueprintProtected))
 	float TraceDistance = 500.f;
-	/** Collision channel used for the interaction trace */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
-	/** Axis used for trace direction (relative to pivot transform) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Trace")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
 	EInteractionTraceAxis TraceAxis = EInteractionTraceAxis::Forward;
-	/** Draw debug line for the trace */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
-	bool bDrawDebugTrace = false;
-	/** Color of debug trace when a hit occurs */
+	EDebugDrawType DebugDrawType = EDebugDrawType::None;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
 	FColor DebugHitColor = FColor::Green;
-	/** Color of debug trace when no hit occurs */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
 	FColor DebugNoHitColor = FColor::Red;
 };

@@ -9,21 +9,11 @@ void UFPS_Interactor::OnControllerReady(AController *InController)
         return;
 
     APlayerController *PC = Cast<APlayerController>(InController);
-    if (PC != nullptr)
+    if (PC == nullptr)
     {
-        // APlayerCameraManager *CameraManager = PC->PlayerCameraManager;
-        FVector CameraLocation;
-        FRotator CameraRotation;
-        PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-        FTransform CameraTransform;
-        CameraTransform.SetLocation(CameraLocation);
-        CameraTransform.SetRotation(CameraRotation.Quaternion());
-        CameraTransform.SetScale3D(FVector(1.f));
-        SetPivotToTransform(CameraTransform);
-    }else
-    {
-        LOG_WARNING("APlayerController casting faild");
+        PC = GetWorld()->GetFirstPlayerController();
     }
+    SetPivotToComponent(PC->PlayerCameraManager->GetTransformComponent());
 }
 
 bool UFPS_Interactor::TryGetDetectedFocused(FHitResult &OutHit) const
@@ -36,7 +26,7 @@ bool UFPS_Interactor::TryGetDetectedFocused(FHitResult &OutHit) const
 
     const FTransform Pivot = GetPivot();
 
-    const FVector Start = Pivot.GetLocation();
+    const FVector Start = Pivot.GetLocation() + Offcet;
     const FVector Direction = GetTraceDirection(Pivot);
     const FVector End = Start + Direction * TraceDistance;
 
@@ -52,14 +42,35 @@ bool UFPS_Interactor::TryGetDetectedFocused(FHitResult &OutHit) const
         QueryParams);
 
 #if ENABLE_DRAW_DEBUG
-    if (bDrawDebugTrace)
+    if (DebugDrawType != EDebugDrawType::None)
     {
         const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
-        DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
 
-        if (bHit)
+        switch (DebugDrawType)
         {
-            DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.f);
+        case EDebugDrawType::Line:
+            DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
+            if (bHit)
+            {
+                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.f);
+            }
+            break;
+
+        case EDebugDrawType::Sphere:
+            if (bHit)
+            {
+                DrawDebugSphere(World, OutHit.ImpactPoint, 12.f, 16, LineColor, false, 1.f, 0, 1.5f);
+            }
+            break;
+
+        case EDebugDrawType::LineAndSphere:
+            DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
+            if (bHit)
+            {
+                DrawDebugSphere(World, OutHit.ImpactPoint, 12.f, 16, LineColor, false, 1.f, 0, 1.5f);
+                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.f);
+            }
+            break;
         }
     }
 #endif
