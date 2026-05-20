@@ -11,19 +11,12 @@ void USphereInteractable::Hover_Implementation(UActorComponent *Provider, FHitRe
 void USphereInteractable::UnHover_Implementation(UActorComponent *Provider)
 {
 }
-void USphereInteractable::Interact_Implementation(UActorComponent *Provider)
-{
-}
-bool USphereInteractable::CanHover_Implementation() const
-{
-    return false;
-}
-bool USphereInteractable::CanInteract_Implementation(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const
-{
-    if (InputEventType == ETriggerEvent::Started)
-    {
-        return true;
-    }
+// bool USphereInteractable::CanInteract_Implementation(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const
+// {
+//     if (InputEventType == ETriggerEvent::Started)
+//     {
+//         return true;
+//     }
 
-    return false;
-}
+//     return false;
+// }

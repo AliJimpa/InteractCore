@@ -90,7 +90,6 @@ void UInteractionComponent::UpdateInteraction()
 		NewFocused = ResolveInteractableFromHit(HitResult);
 	}
 
-
 	if (NewFocused.GetObject() != CurrentInteractable.GetObject())
 	{
 		SetCurrentInteractable(NewFocused, HitResult);
@@ -101,7 +100,7 @@ void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInter
 	if (UObject *CurrentObject = CurrentInteractable.GetObject())
 	{
 		IInteractable::Execute_UnHover(CurrentObject, this);
-		//LOG_WARNING("UnHover");
+		// LOG_WARNING("UnHover");
 	}
 
 	CurrentInteractable = nullptr;
@@ -112,11 +111,11 @@ void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInter
 		{
 			CurrentInteractable = NewInteractable;
 			IInteractable::Execute_Hover(CurrentInteractable.GetObject(), this, HitResult);
-			//LOG_WARNING("Hover");
+			// LOG_WARNING("Hover");
 		}
 		else
 		{
-			//LOG_WARNING("Can't Hover");
+			// LOG_WARNING("Can't Hover");
 		}
 	}
 }
@@ -155,7 +154,7 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 	case EInteractionSearchMode::ActorAndComponent:
 	{
 		TScriptInterface<IInteractable> Result = MakeInteractableInterface(HitActor);
-		if (Result)
+		if (Result.GetObject())
 		{
 			return Result;
 		}
@@ -165,7 +164,7 @@ TScriptInterface<IInteractable> UInteractionComponent::ResolveInteractableFromHi
 	case EInteractionSearchMode::PreferActorFallbackToComponent:
 	{
 		auto Result = MakeInteractableInterface(HitActor);
-		if (Result)
+		if (Result.GetObject())
 			return Result;
 
 		if (HitActor)
@@ -247,30 +246,11 @@ void UInteractionComponent::BindInteractionInput(UEnhancedInputComponent *EIC)
 }
 void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance)
 {
-	switch (Instance.GetTriggerEvent())
+	if (UObject *CurrentObject = CurrentInteractable.GetObject())
 	{
-	case ETriggerEvent::Started:
-		// HandleInteractStarted();
-		break;
-
-	case ETriggerEvent::Triggered:
-		// HandleInteractTriggered();
-		IInteractable::Execute_Interact(GetCurrentInteractable().GetObject(), this);
-		break;
-
-	case ETriggerEvent::Ongoing:
-		// HandleInteractOngoing();
-		break;
-
-	case ETriggerEvent::Canceled:
-		// HandleInteractCanceled();
-		break;
-
-	case ETriggerEvent::Completed:
-		// HandleInteractCompleted();
-		break;
-
-	default:
-		break;
+		if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
+		{
+			IInteractable::Execute_Interact(CurrentObject, this);
+		}
 	}
 }

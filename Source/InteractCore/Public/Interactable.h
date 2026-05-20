@@ -23,10 +23,6 @@ public:
     void UnHover(UActorComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
     void Interact(UActorComponent *Provider);
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
-    bool CanHover() const;
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permisions")
-    bool CanInteract(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const;
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Settings")
-    int32 GetPriority() const;
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Input")
+    bool ShouldHandleInput(const FInputActionInstance &InputValue) const;
 };
