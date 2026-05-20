@@ -3,6 +3,14 @@
 #include "FPSInteraction.h"
 #include "DrawDebugHelpers.h"
 
+UFPSInteraction::UFPSInteraction() : Super()
+{
+    if (TraceType == EInteractionTraceType::Auto && SphereTraceRadii.IsEmpty())
+    {
+        SphereTraceRadii = {5.f, 10.f, 15.f};
+    }
+}
+
 void UFPSInteraction::OnControllerReady(AController *InController)
 {
     if (InController == nullptr)
@@ -34,46 +42,56 @@ bool UFPSInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
     QueryParams.bTraceComplex = false;
     QueryParams.AddIgnoredActor(GetOwner());
 
-    const bool bHit = World->LineTraceSingleByChannel(
-        OutHit,
-        Start,
-        End,
-        TraceChannel,
-        QueryParams);
-
-#if ENABLE_DRAW_DEBUG
-    if (DebugDrawType != EDebugDrawType::None)
+    bool bHit = false;
+    if (TraceType == EInteractionTraceType::LineTrace || TraceType == EInteractionTraceType::Auto)
     {
-        const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
-
-        switch (DebugDrawType)
+        bHit = World->LineTraceSingleByChannel(
+            OutHit,
+            Start,
+            End,
+            TraceChannel,
+            QueryParams);
+#if ENABLE_DRAW_DEBUG
+        if (bDrawDebugTrace)
         {
-        case EDebugDrawType::Line:
+            const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
             DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
             if (bHit)
             {
-                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.f);
+                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.5f);
             }
-            break;
+        }
+#endif
+    }
 
-        case EDebugDrawType::Sphere:
-            if (bHit)
+    if (TraceType == EInteractionTraceType::SphereTrace || (TraceType == EInteractionTraceType::Auto && !bHit))
+    {
+        // Sphere Fallback
+        for (float Radius : SphereTraceRadii)
+        {
+            bHit = World->SweepSingleByChannel(
+                OutHit,
+                Start,
+                End,
+                FQuat::Identity,
+                TraceChannel,
+                FCollisionShape::MakeSphere(Radius),
+                QueryParams);
+#if ENABLE_DRAW_DEBUG
+            if (bDrawDebugTrace)
             {
-                DrawDebugSphere(World, OutHit.ImpactPoint, 12.f, 16, LineColor, false, 1.f, 0, 1.5f);
+                const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
+                DrawDebugSphere(World, End, Radius, 16, LineColor, false, 1.f, 0, 1.5f);
+                if (bHit)
+                {
+                    DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.5f);
+                }
             }
-            break;
-
-        case EDebugDrawType::LineAndSphere:
-            DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
-            if (bHit)
-            {
-                DrawDebugSphere(World, OutHit.ImpactPoint, 12.f, 16, LineColor, false, 1.f, 0, 1.5f);
-                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.f);
-            }
-            break;
+#endif
+            if(bHit)
+                break;
         }
     }
-#endif
 
     return bHit;
 }
