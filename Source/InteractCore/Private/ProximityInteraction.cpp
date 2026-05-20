@@ -2,79 +2,41 @@
 
 #include "ProximityInteraction.h"
 #include "Components/SphereComponent.h"
-// #include "EnhancedInputComponent.h"
-// #include "GameFramework/PlayerController.h"
 #include "EnhancedPlayerInput.h"
 
 UProximityInteraction::UProximityInteraction()
 {
-    // Overlping just detect actor so hitresult didnt have any componet
-    // if (DetectionMode == EInteractionSearchMode::ActorAndComponent)
-    // {
-    //     DetectionMode = EInteractionSearchMode::ActorOnly;
-    // }
-
-    DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
-    DetectionSphere->InitSphereRadius(300.f);
-    // Make it visible so you can see it in game/editor
-    DetectionSphere->SetHiddenInGame(false);
-    DetectionSphere->SetVisibility(true);
-    // Not necessary for drawing, but helps debugging readability
-    DetectionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    DetectionSphere->SetupAttachment(nullptr); // important: no parent yet in a component ctor
+    DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
+    DetectionSphere->InitSphereRadius(DetectionRadius);
+    DetectionSphere->SetHiddenInGame(!bDrawDebugSphere);
 }
 
-void UProximityInteraction::OnControllerReady(AController *InController)
-{
-    Super::OnControllerReady(InController);
-
-    if (InController == nullptr)
-        return;
-
-    if (InController->IsLocalController())
-    {
-        APlayerController *PC = Cast<APlayerController>(InController);
-        if (!PC)
-        {
-            LOG_WARNING("Pawn has no PlayerController yet");
-            return;
-        }
-
-        EPI = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
-        if (!EPI)
-        {
-            LOG_WARNING("APlayerController has not any EnhancePlayerInput");
-            return;
-        }
-    }
-    else
-    {
-        LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
-        return;
-    }
-}
-
+// Basic Methods
 void UProximityInteraction::BeginPlay()
 {
-    Super::BeginPlay();
-    if (AActor *Owner = GetOwner())
-    {
-        if (USceneComponent *Root = Owner->GetRootComponent())
-        {
-            DetectionSphere->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
-        }
-    }
     DetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &UProximityInteraction::OnBeginOverlap);
     DetectionSphere->OnComponentEndOverlap.AddDynamic(this, &UProximityInteraction::OnEndOverlap);
+    DetectionSphere->SetHiddenInGame(!bDrawDebugSphere);
+    Super::BeginPlay();
 }
-void UProximityInteraction::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UProximityInteraction::OnRegister()
 {
-    DetectionSphere->OnComponentBeginOverlap.RemoveDynamic(this, &UProximityInteraction::OnBeginOverlap);
-    DetectionSphere->OnComponentEndOverlap.RemoveDynamic(this, &UProximityInteraction::OnEndOverlap);
+    Super::OnRegister();
 
-    Super::EndPlay(EndPlayReason);
+    if (!DetectionSphere)
+        return;
+
+    AActor *Owner = GetOwner();
+    if (!Owner)
+        return;
+
+    if (USceneComponent *Root = Owner->GetRootComponent())
+    {
+        DetectionSphere->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
+    }
+
+    DetectionSphere->RegisterComponent();
 }
-
 void UProximityInteraction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
     if (UseInputForHovering)
@@ -86,10 +48,96 @@ void UProximityInteraction::TickComponent(float DeltaTime, ELevelTick TickType, 
     }
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-
-void UProximityInteraction::DetectCandidates()
+void UProximityInteraction::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    // candidates already tracked by overlap events
+    DetectionSphere->OnComponentBeginOverlap.RemoveDynamic(this, &UProximityInteraction::OnBeginOverlap);
+    DetectionSphere->OnComponentEndOverlap.RemoveDynamic(this, &UProximityInteraction::OnEndOverlap);
+
+    Super::EndPlay(EndPlayReason);
+}
+
+// Interaction Method
+void UProximityInteraction::OnControllerReady(AController *InController)
+{
+    Super::OnControllerReady(InController);
+
+    if (UseInputForHovering)
+    {
+        if (InController == nullptr)
+        {
+            LOG_ERROR("Controller not Ready");
+            return;
+        }
+
+        if (InController->IsLocalController())
+        {
+            APlayerController *PC = Cast<APlayerController>(InController);
+            if (!PC)
+            {
+                LOG_ERROR("Pawn has no PlayerController yet");
+                return;
+            }
+
+            EPI = Cast<UEnhancedPlayerInput>(PC->PlayerInput);
+            if (EPI == nullptr)
+            {
+                LOG_WARNING("APlayerController has not any EnhancePlayerInput");
+                PC = GetWorld()->GetFirstPlayerController();
+            }
+        }
+        else
+        {
+            LOG_ERROR("The Owner Actor [%s] is not Ownership to get controller", *GetOwner()->GetName());
+            return;
+        }
+    }
+
+    SetPivotToComponent(GetOwner()->GetRootComponent());
+}
+bool UProximityInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
+{
+    if (CandidateHits.Num() == 0)
+    {
+        return false;
+    }
+
+    const AActor *Owner = GetOwner();
+    if (!Owner)
+    {
+        return false;
+    }
+
+    const FVector Pivot = GetPivot().GetLocation();
+
+    float ClosestDistSq = TNumericLimits<float>::Max();
+    const FHitResult *BestHit = nullptr;
+
+    for (const FHitResult &Hit : CandidateHits)
+    {
+        AActor *HitActor = Hit.GetActor();
+
+        if (!IsValid(HitActor))
+        {
+            continue;
+        }
+        const FVector TargetLocation = Hit.ImpactPoint;
+
+        const float DistSq = FVector::DistSquared(Pivot, TargetLocation);
+
+        if (DistSq < ClosestDistSq)
+        {
+            ClosestDistSq = DistSq;
+            BestHit = &Hit;
+        }
+    }
+
+    if (BestHit)
+    {
+        OutHit = *BestHit;
+        return true;
+    }
+
+    return false;
 }
 
 // Collition Methods
@@ -129,7 +177,20 @@ void UProximityInteraction::OnEndOverlap(UPrimitiveComponent *OverlappedComponen
             return Hit.GetActor() == OtherActor && Hit.GetComponent() == OtherComp;
         });
 }
+void UProximityInteraction::UpdateCollisionSettings()
+{
+    if (!DetectionSphere)
+        return;
 
+    DetectionSphere->SetGenerateOverlapEvents(true);
+    DetectionSphere->SetSphereRadius(DetectionRadius);
+    DetectionSphere->SetCollisionEnabled(CollisionEnabled);
+    DetectionSphere->SetCollisionResponseToAllChannels(DefaultResponse);
+    DetectionSphere->SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
+    DetectionSphere->SetGenerateOverlapEvents(bGenerateOverlapEvents);
+}
+
+// Input Methods
 bool UProximityInteraction::IsHoverInputPressed() const
 {
     if (!HoverInput)
@@ -145,3 +206,12 @@ bool UProximityInteraction::IsHoverInputPressed() const
 
     return EPI->GetActionValue(HoverInput).Get<bool>();
 }
+
+#if WITH_EDITOR
+void UTPSInteraction::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    UpdateCollisionSettings();
+}
+#endif

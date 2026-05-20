@@ -34,11 +34,18 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnRegister() override;
 	virtual void OnControllerReady(AController *InController) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	void DetectCandidates();
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+#endif
+
+private:
 	const UEnhancedPlayerInput *EPI = nullptr;
+	void UpdateCollisionSettings();
 
 private:
 	UFUNCTION()
@@ -49,11 +56,6 @@ private:
 	bool IsHoverInputPressed() const;
 
 public:
-	// === Editable collision settings ===
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	float DetectionRadius = 300.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Pawn;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Debug")
 	bool bDrawDebugSphere = true;
 
@@ -62,6 +64,16 @@ protected:
 	USphereComponent *DetectionSphere;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Setting")
 	TArray<FHitResult> CandidateHits;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision", meta = (ClampMin = "0.0"))
+	float DetectionRadius = 300.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
+	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled = ECollisionEnabled::QueryOnly;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
+	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Pawn;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
+	TEnumAsByte<ECollisionResponse> DefaultResponse = ECR_Ignore;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
+	bool bGenerateOverlapEvents = true;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
