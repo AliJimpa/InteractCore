@@ -32,11 +32,18 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
+// InteractionComponent (Abstract Base Class)
 /**
- * Base interaction component.
- *
- * Provides the core interface and functionality for any interaction system.
- * Other interaction implementations should inherit from this class.
+ * @class UInteractionComponent
+ * @brief Abstract base class for managing interaction events such as hovering, unhovering, and interacting with targets.
+ * 
+ * This component acts as a foundation for custom interaction systems, handling:
+ * - Hover/Unhover events for UI or interactable objects via the target interface.
+ * - Core interaction event management based on input setup.
+ * - Pivot management to determine the origin of detection.
+ * 
+ * Use derived classes to create specific interaction systems tailored to your game's needs,
+ * such as camera-based tracing, collision detection, or mouse-based interactions.
  */
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Base class for all interaction systems."))
 class INTERACTCORE_API UInteractionComponent : public UActorComponent
