@@ -78,24 +78,24 @@ protected:
 	bool K2_CanInteract(UObject *Interactable) const;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (ToolTip = "Automatically adjust trace frequency based on camera movement. Faster when the player moves the camera and slower when idle."))
 	bool bDynamicInterval = false;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ToolTip = "Select what input/activity drives the adaptive tick rate."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ToolTip = "Select what input/activity drives the adaptive tick rate."))
 	EInteractionAdaptiveTickTrigger AdaptiveTickMode = EInteractionAdaptiveTickTrigger::PivotRotation;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
 	float FastTickRate = 0.033f; // ~30fps
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval", EditConditionHides, ClampMin = "0.008", ClampMax = "1"))
 	float SlowTickRate = 0.1f; // 10fps
 
 	// Thresholds for the triggers
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotRotation || AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotTransform", EditConditionHides, ClampMin = "0.0", ToolTip = "Rotation delta (degrees) required for fast ticking."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotRotation || AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotTransform", EditConditionHides, ClampMin = "0.0", ToolTip = "Rotation delta (degrees) required for fast ticking."))
 	float RotationThreshold = 1.0f;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotPosition || AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotTransform", EditConditionHides, ClampMin = "0.0", ToolTip = "Position delta (cm) required for fast ticking."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotPosition || AdaptiveTickMode == EInteractionAdaptiveTickTrigger::PivotTransform", EditConditionHides, ClampMin = "0.0", ToolTip = "Position delta (cm) required for fast ticking."))
 	float PositionThreshold = 2.0f;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::OwnerVelocity", EditConditionHides, ClampMin = "0.0", ToolTip = "Owner velocity (cm/s) required for fast ticking."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::OwnerVelocity", EditConditionHides, ClampMin = "0.0", ToolTip = "Owner velocity (cm/s) required for fast ticking."))
 	float VelocityThreshold = 10.0f;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::MouseMovement", EditConditionHides, ClampMin = "0.0", ToolTip = "Mouse movement (pixels) required for fast ticking."))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::MouseMovement", EditConditionHides, ClampMin = "0.0", ToolTip = "Mouse movement (pixels) required for fast ticking."))
 	float MouseMovementThreshold = 5.0f;
-	UPROPERTY(EditAnywhere, Category = "Interaction|Tick", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::Custom", EditConditionHides, ClampMin = "0.001"))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Optimization", meta = (EditCondition = "bDynamicInterval && AdaptiveTickMode == EInteractionAdaptiveTickTrigger::Custom", EditConditionHides, ClampMin = "0.001"))
 	float ThresholdCustom = 0.03f;
 };

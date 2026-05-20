@@ -22,8 +22,6 @@ UProximityInteraction::UProximityInteraction()
     // Not necessary for drawing, but helps debugging readability
     DetectionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     DetectionSphere->SetupAttachment(nullptr); // important: no parent yet in a component ctor
-    // (Optional) make it render a bit even if collision is off
-    DetectionSphere->bHiddenInGame = false; // UE doesn't always have this for components; ignore if not present
 }
 
 void UProximityInteraction::OnControllerReady(AController *InController)
@@ -97,11 +95,39 @@ void UProximityInteraction::DetectCandidates()
 // Collition Methods
 void UProximityInteraction::OnBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-    CandidateActors.AddUnique(OtherActor);
+    if (!OtherActor || OtherActor == GetOwner())
+    {
+        return;
+    }
+
+    // Avoid duplicates for same actor/component
+    const int32 ExistingIndex = CandidateHits.IndexOfByPredicate(
+        [OtherActor, OtherComp](const FHitResult &Hit)
+        {
+            return Hit.GetActor() == OtherActor && Hit.GetComponent() == OtherComp;
+        });
+
+    if (ExistingIndex != INDEX_NONE)
+    {
+        CandidateHits[ExistingIndex] = SweepResult;
+    }
+    else
+    {
+        CandidateHits.Add(SweepResult);
+    }
 }
 void UProximityInteraction::OnEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
-    CandidateActors.Remove(OtherActor);
+    if (!OtherActor)
+    {
+        return;
+    }
+
+    CandidateHits.RemoveAll(
+        [OtherActor, OtherComp](const FHitResult &Hit)
+        {
+            return Hit.GetActor() == OtherActor && Hit.GetComponent() == OtherComp;
+        });
 }
 
 bool UProximityInteraction::IsHoverInputPressed() const

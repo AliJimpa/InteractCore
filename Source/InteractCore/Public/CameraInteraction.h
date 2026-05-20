@@ -52,17 +52,17 @@ private:
 	FVector GetTraceDirection(const FTransform &Pivot) const;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting")
 	EInteractionTraceType TraceType = EInteractionTraceType::Auto;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	FVector Offcet = FVector::ZeroVector;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (ClampMin = "100", BlueprintProtected))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (ClampMin = "100", BlueprintProtected))
 	float TraceDistance = 500.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (BlueprintProtected))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	EInteractionTraceAxis TraceAxis = EInteractionTraceAxis::Forward;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|FPS", meta = (EditCondition = "TraceType == EInteractionTraceType::SphereTrace || TraceType == EInteractionTraceType::Auto", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (EditCondition = "TraceType == EInteractionTraceType::SphereTrace || TraceType == EInteractionTraceType::Auto", EditConditionHides))
 	TArray<float> SphereTraceRadii = {5.f, 10.f, 15.f}; // 3 levels
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
