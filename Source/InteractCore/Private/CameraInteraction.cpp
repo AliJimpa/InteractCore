@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "FPSInteraction.h"
+#include "CameraInteraction.h"
 #include "DrawDebugHelpers.h"
 
-UFPSInteraction::UFPSInteraction() : Super()
+UCameraInteraction::UCameraInteraction() : Super()
 {
     if (TraceType == EInteractionTraceType::Auto && SphereTraceRadii.IsEmpty())
     {
@@ -11,7 +11,7 @@ UFPSInteraction::UFPSInteraction() : Super()
     }
 }
 
-void UFPSInteraction::OnControllerReady(AController *InController)
+void UCameraInteraction::OnControllerReady(AController *InController)
 {
     if (InController == nullptr)
         return;
@@ -24,7 +24,7 @@ void UFPSInteraction::OnControllerReady(AController *InController)
     SetPivotToComponent(PC->PlayerCameraManager->GetTransformComponent());
 }
 
-bool UFPSInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
+bool UCameraInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
 {
     UWorld *World = GetWorld();
     if (!World)
@@ -97,7 +97,7 @@ bool UFPSInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
 }
 
 // Functions
-FVector UFPSInteraction::GetTraceDirection(const FTransform &Pivot) const
+FVector UCameraInteraction::GetTraceDirection(const FTransform &Pivot) const
 {
     switch (TraceAxis)
     {

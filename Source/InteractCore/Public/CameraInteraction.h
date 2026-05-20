@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DefaultInteraction.h"
-#include "FPSInteraction.generated.h"
+#include "CameraInteraction.generated.h"
 
 UENUM()
 enum class EInteractionTraceAxis : uint8
@@ -21,19 +21,27 @@ enum class EInteractionTraceType : uint8
 	Auto,
 };
 
+// CameraInteraction
 /**
- * First‑Person interaction component.
- *
- * Implements interaction behavior designed for first‑person games,
- * typically using camera-based traces and direct player view targeting.
+ * @class UCameraInteraction
+ * @brief Interaction component for detecting objects via camera-based line traces.
+ * 
+ * Features:
+ * - Sets the detection pivot point at the camera position.
+ * - Performs interaction detection using line traces from the camera to the targeted object.
+ * - Best suited for first-person or third-person camera-based interaction systems.
+ * 
+ * Usage:
+ * - Add this component to an actor to enable camera-based tracing for interactables.
+ * - Customize the trace parameters and permissions as needed.
  */
 UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "FPS Interaction", Tooltip = "Handles interaction logic for first-person perspectives."))
-class INTERACTCORE_API UFPSInteraction : public UDefaultInteraction
+class INTERACTCORE_API UCameraInteraction : public UDefaultInteraction
 {
 	GENERATED_BODY()
 
 public:
-	UFPSInteraction();
+	UCameraInteraction();
 
 protected:
 	virtual void OnControllerReady(AController *InController) override;
