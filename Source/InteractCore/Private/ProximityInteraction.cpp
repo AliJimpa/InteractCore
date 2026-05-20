@@ -208,7 +208,7 @@ bool UProximityInteraction::IsHoverInputPressed() const
 }
 
 #if WITH_EDITOR
-void UTPSInteraction::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+void UProximityInteraction::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 

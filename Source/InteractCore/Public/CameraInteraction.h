@@ -35,7 +35,7 @@ enum class EInteractionTraceType : uint8
  * - Add this component to an actor to enable camera-based tracing for interactables.
  * - Customize the trace parameters and permissions as needed.
  */
-UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "FPS Interaction", Tooltip = "Handles interaction logic for first-person perspectives."))
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "Camera Interaction", Tooltip = "Handles interaction logic for first-person perspectives."))
 class INTERACTCORE_API UCameraInteraction : public UDefaultInteraction
 {
 	GENERATED_BODY()

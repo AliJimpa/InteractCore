@@ -24,7 +24,7 @@ class UEnhancedPlayerInput;
  * - Attach this component to any actor to enable proximity-based interaction detection.
  * - Configure collision profiles and distance thresholds for your gameplay scenario.
  */
-UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "TPS Interaction", Tooltip = "Handles interaction logic for third-person perspectives."))
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "Proximity Interaction", Tooltip = "Handles interaction logic for Isometric character."))
 class INTERACTCORE_API UProximityInteraction : public UDefaultInteraction
 {
 	GENERATED_BODY()
