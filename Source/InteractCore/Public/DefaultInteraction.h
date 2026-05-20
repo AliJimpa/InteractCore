@@ -34,12 +34,16 @@ enum class EInteractionAdaptiveTickTrigger : uint8
 		ToolTip = "Use a custom adaptive tick rule implemented by the component."),
 };
 
+// DefaultInteraction (Abstract Base Class)
 /**
- * Default interaction implementation layer.
- *
- * Extends UInteractionComponent and provides shared logic used by
- * common interaction types such as FPS or TPS interaction systems.
- * This class is not intended to be used directly.
+ * @class UDefaultInteraction
+ * @brief Abstract base class for handling interaction permissions and adaptive tick management.
+ * 
+ * Implements key interaction logic:
+ * - Overrides permission checks for hovering and interaction (via CanHover and CanInteract).
+ * - Supports dynamic tick interval management to optimize performance in specific gameplay scenarios.
+ * 
+ * Extend or use this class to build advanced interaction systems with permission-based and adaptive features.
  */
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Core framework for standard interactions."))
 class INTERACTCORE_API UDefaultInteraction : public UInteractionComponent
