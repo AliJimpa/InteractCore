@@ -7,7 +7,7 @@
 #include "InteractDebug.h"
 #include "InteractionComponent.generated.h"
 
-class IInteractable;
+
 class UInputAction;
 struct FInputActionInstance;
 class UEnhancedInputComponent;

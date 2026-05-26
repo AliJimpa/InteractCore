@@ -7,8 +7,6 @@
 UProximityInteraction::UProximityInteraction()
 {
     DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
-    DetectionSphere->InitSphereRadius(DetectionRadius);
-    DetectionSphere->SetHiddenInGame(!bDrawDebugSphere);
 }
 
 // Basic Methods
@@ -16,7 +14,6 @@ void UProximityInteraction::BeginPlay()
 {
     DetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &UProximityInteraction::OnBeginOverlap);
     DetectionSphere->OnComponentEndOverlap.AddDynamic(this, &UProximityInteraction::OnEndOverlap);
-    DetectionSphere->SetHiddenInGame(!bDrawDebugSphere);
     Super::BeginPlay();
 }
 void UProximityInteraction::OnRegister()
@@ -59,7 +56,7 @@ void UProximityInteraction::EndPlay(const EEndPlayReason::Type EndPlayReason)
 // Interaction Method
 void UProximityInteraction::OnControllerReady(AController *InController)
 {
-    Super::OnControllerReady(InController);
+    // Super::OnControllerReady(InController);
 
     if (UseInputForHovering)
     {
@@ -162,6 +159,7 @@ void UProximityInteraction::OnBeginOverlap(UPrimitiveComponent *OverlappedCompon
     else
     {
         CandidateHits.Add(SweepResult);
+        LOG("NEWItemAdded");
     }
 }
 void UProximityInteraction::OnEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
@@ -176,18 +174,6 @@ void UProximityInteraction::OnEndOverlap(UPrimitiveComponent *OverlappedComponen
         {
             return Hit.GetActor() == OtherActor && Hit.GetComponent() == OtherComp;
         });
-}
-void UProximityInteraction::UpdateCollisionSettings()
-{
-    if (!DetectionSphere)
-        return;
-
-    DetectionSphere->SetGenerateOverlapEvents(true);
-    DetectionSphere->SetSphereRadius(DetectionRadius);
-    DetectionSphere->SetCollisionEnabled(CollisionEnabled);
-    DetectionSphere->SetCollisionResponseToAllChannels(DefaultResponse);
-    DetectionSphere->SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
-    DetectionSphere->SetGenerateOverlapEvents(bGenerateOverlapEvents);
 }
 
 // Input Methods
@@ -212,6 +198,6 @@ void UProximityInteraction::PostEditChangeProperty(FPropertyChangedEvent &Proper
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
-    UpdateCollisionSettings();
+    DetectionSphere->SetWorldLocation(Offcet);
 }
 #endif

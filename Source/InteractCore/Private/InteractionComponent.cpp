@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractionComponent.h"
-#include "Interactable.h"
 #include "EnhancedInputComponent.h"
 
 // Sets default values for this component's properties
@@ -248,9 +247,12 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 {
 	if (UObject *CurrentObject = CurrentInteractable.GetObject())
 	{
-		if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
+		if (CanInteract(CurrentObject))
 		{
-			IInteractable::Execute_Interact(CurrentObject, this);
+			if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
+			{
+				IInteractable::Execute_Interact(CurrentObject, this);
+			}
 		}
 	}
 }

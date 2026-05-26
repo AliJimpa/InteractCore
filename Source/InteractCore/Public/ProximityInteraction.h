@@ -55,29 +55,17 @@ private:
 	UFUNCTION(BlueprintPure, Category = "Interactor|Getter")
 	bool IsHoverInputPressed() const;
 
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Debug")
-	bool bDrawDebugSphere = true;
-
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Setting")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	USphereComponent *DetectionSphere;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Setting")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting")
+	FVector Offcet = FVector::ZeroVector;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	TArray<FHitResult> CandidateHits;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision", meta = (ClampMin = "0.0"))
-	float DetectionRadius = 300.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	TEnumAsByte<ECollisionEnabled::Type> CollisionEnabled = ECollisionEnabled::QueryOnly;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Pawn;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	TEnumAsByte<ECollisionResponse> DefaultResponse = ECR_Ignore;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Collision")
-	bool bGenerateOverlapEvents = true;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Interactor|Input")
+	UPROPERTY(EditAnywhere, Category = "Interaction|Input")
 	bool UseInputForHovering;
-	UPROPERTY(EditAnywhere, Category = "Interactor|Input", meta = (EditCondition = "UseInputForHovering == true", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = "Interaction|Input", meta = (EditCondition = "UseInputForHovering == true", EditConditionHides))
 	UInputAction *HoverInput;
 };
