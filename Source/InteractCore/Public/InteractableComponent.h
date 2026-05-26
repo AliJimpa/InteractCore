@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
 #include "Interactable.h"
-#include "SphereInteractable.generated.h"
+#include "InteractableComponent.generated.h"
 
 UENUM(BlueprintType)
 enum class EInputInteractionType : uint8
@@ -22,13 +22,13 @@ enum class EInputInteractionType : uint8
  *
  */
 UCLASS(Blueprintable)
-class INTERACTCORE_API USphereInteractable : public USphereComponent, public IInteractable
+class INTERACTCORE_API UInteractableComponent : public USphereComponent, public IInteractable
 {
 	GENERATED_BODY()
 
 protected:
 	// Implement IInteraction Interface
+	virtual void Interact_Implementation(UActorComponent *Provider) override;
 	virtual void Hover_Implementation(UActorComponent *Provider, FHitResult Hit) override;
 	virtual void UnHover_Implementation(UActorComponent *Provider) override;
-
 };
