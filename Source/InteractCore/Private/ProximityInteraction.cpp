@@ -93,6 +93,9 @@ void UProximityInteraction::OnControllerReady(AController *InController)
 }
 bool UProximityInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
 {
+    // TArray<AActor *> OverlappingActors;
+    // TSubclassOf<AActor> FilterClass = APawn::StaticClass();
+    // DetectionSphere->GetOverlappingActors(OverlappingActors, FilterClass);
     if (CandidateHits.Num() == 0)
     {
         return false;
@@ -159,7 +162,6 @@ void UProximityInteraction::OnBeginOverlap(UPrimitiveComponent *OverlappedCompon
     else
     {
         CandidateHits.Add(SweepResult);
-        LOG("NEWItemAdded");
     }
 }
 void UProximityInteraction::OnEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
