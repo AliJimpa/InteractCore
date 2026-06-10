@@ -60,6 +60,26 @@ void UInteractableZone::BeginPlay()
         SphereZone->OnComponentBeginOverlap.AddDynamic(this, &UInteractableZone::OnOverlapBegin);
         SphereZone->OnComponentEndOverlap.AddDynamic(this, &UInteractableZone::OnOverlapEnd);
     }
+
+    TArray<FHitResult> Hits;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(GetOwner());
+    GetWorld()->SweepMultiByChannel(Hits,GetOwner()->GetActorLocation(),GetOwner()->GetActorLocation(),FQuat::Identity,SightChannel,FCollisionShape::MakeSphere(ZoneRadius),Params);
+
+    for (const FHitResult &Hit : Hits)
+    {
+        AActor *HitActor = Hit.GetActor();
+        if (!HitActor)
+            continue;
+
+        UInteractionComponent *Comp = HitActor->FindComponentByClass<UInteractionComponent>();
+        if (Comp && !IsInZone())
+        {
+            DetectedObj = Comp;
+            OnInteractorDetected(Comp);
+            OnZoneBegin.Broadcast(Comp);
+        }
+    }
 }
 
 void UInteractableZone::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
@@ -97,7 +117,7 @@ bool UInteractableZone::CheckLineOfSight() const
 
 #if WITH_EDITOR
     if (bShowDebugSight)
-        DrawDebugLine(GetWorld(), Start, End, bSeen ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
+        DrawDebugLine(GetWorld(), Start, End, Hit.bBlockingHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
 #endif
 
     return bSeen;
@@ -148,14 +168,6 @@ void UInteractableZone::ApplyZoneSettings(USphereComponent *Zone) const
     Zone->bHiddenInGame = bHiddenInGame;
     Zone->SetVisibleFlag(GetVisibleFlag());
 }
-
-// void UInteractableZone::OnInteractorDetected(UInteractionComponent *Interactor)
-// {
-
-// }
-// void UInteractableZone::OnInteractorLost(UInteractionComponent *Interactor)
-// {
-// }
 
 void UInteractableZone::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

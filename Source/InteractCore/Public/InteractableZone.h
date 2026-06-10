@@ -65,7 +65,7 @@ private:
 	bool bShowDebugSight = false;
 
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool IsInZone() const { return DetectedObj != nullptr; }
 
 protected:
