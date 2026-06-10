@@ -184,12 +184,12 @@ void UInteractableZone::ApplyZoneSettings(USphereComponent *Zone) const
 void UInteractableZone::OnInteractorDetected(UInteractionComponent *Interactor)
 {
     if (bToggleRadius)
-        SetSphereRadius(ToggleRadius);
+        SphereZone->SetSphereRadius(ToggleRadius);
 }
 void UInteractableZone::OnInteractorLost(UInteractionComponent *Interactor)
 {
     if (bToggleRadius)
-        SetSphereRadius(ZoneRadius);
+        SphereZone->SetSphereRadius(ZoneRadius);
 }
 
 void UInteractableZone::EndPlay(const EEndPlayReason::Type EndPlayReason)

@@ -9,7 +9,7 @@ UInteractableComponent::UInteractableComponent()
     SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     SetCollisionResponseToAllChannels(ECR_Ignore);
     SetCollisionResponseToChannel(InteractTraceChannel, ECR_Block);
-    //PRINT("Parent");
+    // PRINT("Parent");
 }
 
 void UInteractableComponent::OnRegister()
@@ -21,14 +21,19 @@ void UInteractableComponent::OnRegister()
 
 void UInteractableComponent::Interact_Implementation(UInteractionComponent *Provider)
 {
+    OnInteract.Broadcast(Provider);
     LOG("INTERACT");
 }
 void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
 {
+    bIsHovered = true;
+    OnHoverBegin.Broadcast(Provider);
     LOG("HOVER");
 }
 void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provider)
 {
+    bIsHovered = false;
+    OnHoverEnd.Broadcast(Provider);
     LOG("UNHOVER");
 }
 // bool UInteractableComponent::CanInteract_Implementation(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const

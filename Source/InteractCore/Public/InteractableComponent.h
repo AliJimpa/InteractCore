@@ -37,10 +37,6 @@ protected:
 	virtual void Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit) override;
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Interactable", meta = (DisplayName = "Interact Trace Channel"))
-	TEnumAsByte<ECollisionChannel> InteractTraceChannel = ECC_Camera;
-
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Hover Events")
 	FOnInteractionEvent OnHoverBegin;
@@ -48,4 +44,15 @@ public:
 	FOnInteractionEvent OnHoverEnd;
 	UPROPERTY(BlueprintAssignable, Category = "Interact Events")
 	FOnInteractionEvent OnInteract;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Interactable", meta = (DisplayName = "Interact Trace Channel"))
+	TEnumAsByte<ECollisionChannel> InteractTraceChannel = ECC_Camera;
+
+private:
+	bool bIsHovered = false;
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
+	bool IsHovered() const { return bIsHovered; }
 };
