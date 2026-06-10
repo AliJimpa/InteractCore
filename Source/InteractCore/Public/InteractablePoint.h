@@ -7,11 +7,16 @@
 #include "InteractablePoint.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class INTERACTCORE_API UInteractablePoint : public UInteractableZone
 {
 	GENERATED_BODY()
-	
+public:
+	UInteractablePoint();
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 };

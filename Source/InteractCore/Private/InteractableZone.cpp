@@ -10,6 +10,7 @@ UInteractableZone::UInteractableZone()
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.TickInterval = 0.04f; // 1 / 25 = 0.04 seconds
     bIsImplememtZoneSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractableZone, K2_ApplyZoneSettings));
+    RadiusRange = FVector2D(SphereRadius, SphereRadius * 2);
     // PRINT("Child");
 }
 
@@ -72,7 +73,7 @@ void UInteractableZone::BeginPlay()
             continue;
 
         UInteractionComponent *Comp = HitActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && DetectedObj == nullptr)
+        if (Comp && !HasDetectedTarget())
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
@@ -95,6 +96,17 @@ void UInteractableZone::TickComponent(float DeltaTime, ELevelTick TickType, FAct
         {
             bCanSee = false;
         }
+    }
+
+    if (bDynamicRadius && HasDetectedTarget())
+    {
+        // Distance from character to the InteractablePoint sphere
+        const FVector SelfPos = GetComponentLocation();
+        const FVector TargetPos = DetectedObj->GetOwner()->GetActorLocation();
+        const float Distance = FVector::Dist(TargetPos, SelfPos);
+        const float NormalizedDistance = FMath::Clamp(DistanceThreshold / Distance, 0.0f, 1.0f);
+        const float CurrentRadius = FMath::Lerp(RadiusRange.X, RadiusRange.Y, NormalizedDistance);
+        SetSphereRadius(CurrentRadius);
     }
 }
 
@@ -129,7 +141,7 @@ void UInteractableZone::OnOverlapBegin(UPrimitiveComponent *OverlappedComp, AAct
     {
         // UE_LOG(LogTemp, Warning, TEXT("%s Began Overlap with: %s"), *GetName(), *OtherActor->GetName());
         UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && DetectedObj == nullptr)
+        if (Comp && !HasDetectedTarget())
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
@@ -143,7 +155,7 @@ void UInteractableZone::OnOverlapEnd(UPrimitiveComponent *OverlappedComp, AActor
     {
         // UE_LOG(LogTemp, Warning, TEXT("%s Ended Overlap with: %s"), *GetName(), *OtherActor->GetName());
         UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && DetectedObj != nullptr)
+        if (Comp && HasDetectedTarget())
         {
             DetectedObj = nullptr;
             OnInteractorLost(Comp);
@@ -167,6 +179,17 @@ void UInteractableZone::ApplyZoneSettings(USphereComponent *Zone) const
     }
     Zone->bHiddenInGame = bHiddenInGame;
     Zone->SetVisibleFlag(GetVisibleFlag());
+}
+
+void UInteractableZone::OnInteractorDetected(UInteractionComponent *Interactor)
+{
+    if (bToggleRadius)
+        SetSphereRadius(ToggleRadius);
+}
+void UInteractableZone::OnInteractorLost(UInteractionComponent *Interactor)
+{
+    if (bToggleRadius)
+        SetSphereRadius(ZoneRadius);
 }
 
 void UInteractableZone::EndPlay(const EEndPlayReason::Type EndPlayReason)

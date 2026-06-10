@@ -24,8 +24,8 @@ protected:
 
 protected:
 	virtual void ApplyZoneSettings(USphereComponent *Zone) const;
-	virtual void OnInteractorDetected(UInteractionComponent *Interactor) {}
-	virtual void OnInteractorLost(UInteractionComponent *Interactor) {}
+	virtual void OnInteractorDetected(UInteractionComponent *Interactor);
+	virtual void OnInteractorLost(UInteractionComponent *Interactor);
 
 private:
 	bool CheckLineOfSight() const;
@@ -63,10 +63,25 @@ private:
 	TEnumAsByte<ECollisionChannel> SightChannel = ECC_Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
 	bool bShowDebugSight = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DynamicRadius", meta = (ToolTip = "If enabled, the InteractableSphere radius is dynamically adjusted every Tick based on the distance between this actor and the character.", AllowPrivateAccess = "true"))
+	bool bDynamicRadius = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DynamicRadius", meta = (AllowPrivateAccess = "true"))
+	float DistanceThreshold = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DynamicRadius", meta = (AllowPrivateAccess = "true"))
+	FVector2D RadiusRange = FVector2D::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|ToggleRadius", meta = (ToolTip = "If enabled, the Detectionzone radius change when agent begin overlap and end", AllowPrivateAccess = "true"))
+	bool bToggleRadius = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|ToggleRadius", meta = (AllowPrivateAccess = "true"))
+	float ToggleRadius = 700.f;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
-	bool IsInZone() const { return DetectedObj != nullptr ? bCanSee : false; }
+	bool HasDetectedTarget() const
+	{
+		return DetectedObj != nullptr;
+	}
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
+	bool IsInZone() const { return HasDetectedTarget() ? bCanSee : false; }
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyZoneSettings"))
