@@ -43,9 +43,9 @@ protected:
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Hover Events")
-	FOnInteractionEvent OnHover;
+	FOnInteractionEvent OnHoverBegin;
 	UPROPERTY(BlueprintAssignable, Category = "UnHover Events")
-	FOnInteractionEvent OnUnHover;
+	FOnInteractionEvent OnHoverEnd;
 	UPROPERTY(BlueprintAssignable, Category = "Interact Events")
 	FOnInteractionEvent OnInteract;
 };

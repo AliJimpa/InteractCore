@@ -19,33 +19,58 @@ public:
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
-	virtual void SetupZone(USphereComponent *Zone) const;
+	virtual void ApplyZoneSettings(USphereComponent *Zone) const;
+	virtual void OnInteractorDetected(UInteractionComponent *Interactor) {}
+	virtual void OnInteractorLost(UInteractionComponent *Interactor) {}
+
+private:
+	bool CheckLineOfSight() const;
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnInteractionEvent OnZoneBegin;
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnInteractionEvent OnZoneEnd;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
 	USphereComponent *SphereZone;
 
 private:
+	UPROPERTY()
+	bool bIsImplememtZoneSettings = false;
+	UPROPERTY()
+	UInteractionComponent *DetectedObj;
+	UPROPERTY()
+	bool bCanSee = false; // that means the component can see target object detected by zone
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DetectionZone", meta = (AllowPrivateAccess = "true"))
 	FVector ZoneOffset = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DetectionZone", meta = (AllowPrivateAccess = "true"))
-	float ZoneRadius = 100.f;
+	float ZoneRadius = 500.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DetectionZone", meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<ECollisionEnabled::Type> ZoneCollision = ECollisionEnabled::QueryAndPhysics;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DetectionZone", meta = (AllowPrivateAccess = "true"))
 	TEnumAsByte<ECollisionChannel> ZoneCollisionObjectType = ECC_WorldDynamic;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|DetectionZone", meta = (AllowPrivateAccess = "true"))
 	FCollisionProfileName ZoneCollisionProfile = FCollisionProfileName(TEXT("OverlapAll"));
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (Tooltip = "When true, if target is inside the detection sphere and line-of-sight trace will run each Tick.", AllowPrivateAccess = "true"))
+	bool bCheckLineOfSight = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<ECollisionChannel> SightChannel = ECC_Visibility;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
+	bool bShowDebugSight = false;
 
-private:
-	bool bIsImplememtSetupZone = false;
+public:
+	UFUNCTION()
+	bool IsInZone() const { return DetectedObj != nullptr; }
 
 protected:
-	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "SetupZone"))
-	void K2_SetupZone(USphereComponent *Zone) const;
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyZoneSettings"))
+	void K2_ApplyZoneSettings(USphereComponent *Zone) const;
 
 private:
 	UFUNCTION()

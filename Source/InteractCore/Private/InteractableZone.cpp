@@ -9,8 +9,8 @@ UInteractableZone::UInteractableZone()
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.TickInterval = 0.04f; // 1 / 25 = 0.04 seconds
-    bIsImplememtSetupZone = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractableZone, K2_SetupZone));
-    PRINT("Child");
+    bIsImplememtZoneSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractableZone, K2_ApplyZoneSettings));
+    // PRINT("Child");
 }
 
 void UInteractableZone::OnRegister()
@@ -50,9 +50,9 @@ void UInteractableZone::BeginPlay()
         SphereZone->SetupAttachment(this);
         SphereZone->RegisterComponent();
 
-        SetupZone(SphereZone);
-        if (bIsImplememtSetupZone)
-            K2_SetupZone(SphereZone);
+        ApplyZoneSettings(SphereZone);
+        if (bIsImplememtZoneSettings)
+            K2_ApplyZoneSettings(SphereZone);
     }
 
     if (SphereZone != nullptr)
@@ -62,24 +62,77 @@ void UInteractableZone::BeginPlay()
     }
 }
 
+void UInteractableZone::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (bCheckLineOfSight)
+    {
+        if (IsValid(DetectedObj))
+        {
+            bCanSee = CheckLineOfSight();
+        }
+        else
+        {
+            bCanSee = false;
+        }
+    }
+}
+
+bool UInteractableZone::CheckLineOfSight() const
+{
+    // Start from this component location
+    const FVector Start = GetComponentTransform().GetLocation();
+    // Aim for the target to reduce false negatives
+    const FVector End = DetectedObj->GetOwner()->GetActorLocation();
+
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(GetOwner()); // ignore self only
+
+    GetWorld()->LineTraceSingleByChannel(Hit, Start, End, SightChannel, Params);
+
+    // Seen only if the trace hit the target actor directly
+    const bool bSeen = Hit.GetActor() == DetectedObj->GetOwner();
+
+#if WITH_EDITOR
+    if (bShowDebugSight)
+        DrawDebugLine(GetWorld(), Start, End, bSeen ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
+#endif
+
+    return bSeen;
+}
+
 void UInteractableZone::OnOverlapBegin(UPrimitiveComponent *OverlappedComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
     if (OtherActor && OtherActor != GetOwner())
     {
-        UE_LOG(LogTemp, Warning, TEXT("%s Began Overlap with: %s"), *GetName(), *OtherActor->GetName());
-        // Your Custom Begin Overlap Logic Here
+        // UE_LOG(LogTemp, Warning, TEXT("%s Began Overlap with: %s"), *GetName(), *OtherActor->GetName());
+        UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
+        if (Comp && !IsInZone())
+        {
+            DetectedObj = Comp;
+            OnInteractorDetected(Comp);
+            OnZoneBegin.Broadcast(Comp);
+        }
     }
 }
 void UInteractableZone::OnOverlapEnd(UPrimitiveComponent *OverlappedComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
     if (OtherActor && OtherActor != GetOwner())
     {
-        UE_LOG(LogTemp, Warning, TEXT("%s Ended Overlap with: %s"), *GetName(), *OtherActor->GetName());
-        // Your Custom End Overlap Logic Here
+        // UE_LOG(LogTemp, Warning, TEXT("%s Ended Overlap with: %s"), *GetName(), *OtherActor->GetName());
+        UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
+        if (Comp && IsInZone())
+        {
+            DetectedObj = nullptr;
+            OnInteractorLost(Comp);
+            OnZoneEnd.Broadcast(Comp);
+        }
     }
 }
 
-void UInteractableZone::SetupZone(USphereComponent *Zone) const
+void UInteractableZone::ApplyZoneSettings(USphereComponent *Zone) const
 {
     Zone->SetRelativeLocation(ZoneOffset);
     // SphereComp->SetRelativeRotation(FRotator::ZeroRotator);
@@ -95,6 +148,14 @@ void UInteractableZone::SetupZone(USphereComponent *Zone) const
     Zone->bHiddenInGame = bHiddenInGame;
     Zone->SetVisibleFlag(GetVisibleFlag());
 }
+
+// void UInteractableZone::OnInteractorDetected(UInteractionComponent *Interactor)
+// {
+
+// }
+// void UInteractableZone::OnInteractorLost(UInteractionComponent *Interactor)
+// {
+// }
 
 void UInteractableZone::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
