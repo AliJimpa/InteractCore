@@ -60,13 +60,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (Tooltip = "When true, if target is inside the detection sphere and line-of-sight trace will run each Tick.", AllowPrivateAccess = "true"))
 	bool bCheckLineOfSight = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
-	TEnumAsByte<ECollisionChannel> SightChannel = ECC_Visibility;
+	TEnumAsByte<ECollisionChannel> SightChannel = ECC_Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
 	bool bShowDebugSight = false;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
-	bool IsInZone() const { return DetectedObj != nullptr; }
+	bool IsInZone() const { return DetectedObj != nullptr ? bCanSee : false; }
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyZoneSettings"))

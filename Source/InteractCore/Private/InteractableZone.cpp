@@ -64,8 +64,7 @@ void UInteractableZone::BeginPlay()
     TArray<FHitResult> Hits;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(GetOwner());
-    GetWorld()->SweepMultiByChannel(Hits,GetOwner()->GetActorLocation(),GetOwner()->GetActorLocation(),FQuat::Identity,SightChannel,FCollisionShape::MakeSphere(ZoneRadius),Params);
-
+    GetWorld()->SweepMultiByChannel(Hits, GetOwner()->GetActorLocation(), GetOwner()->GetActorLocation(), FQuat::Identity, SightChannel, FCollisionShape::MakeSphere(ZoneRadius), Params);
     for (const FHitResult &Hit : Hits)
     {
         AActor *HitActor = Hit.GetActor();
@@ -73,7 +72,7 @@ void UInteractableZone::BeginPlay()
             continue;
 
         UInteractionComponent *Comp = HitActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && !IsInZone())
+        if (Comp && DetectedObj == nullptr)
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
@@ -110,10 +109,11 @@ bool UInteractableZone::CheckLineOfSight() const
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(GetOwner()); // ignore self only
 
-    GetWorld()->LineTraceSingleByChannel(Hit, Start, End, SightChannel, Params);
+    bool bSeen = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, SightChannel, Params);
 
     // Seen only if the trace hit the target actor directly
-    const bool bSeen = Hit.GetActor() == DetectedObj->GetOwner();
+    if (bSeen)
+        bSeen = Hit.GetActor() == DetectedObj->GetOwner();
 
 #if WITH_EDITOR
     if (bShowDebugSight)
@@ -129,7 +129,7 @@ void UInteractableZone::OnOverlapBegin(UPrimitiveComponent *OverlappedComp, AAct
     {
         // UE_LOG(LogTemp, Warning, TEXT("%s Began Overlap with: %s"), *GetName(), *OtherActor->GetName());
         UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && !IsInZone())
+        if (Comp && DetectedObj == nullptr)
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
@@ -143,7 +143,7 @@ void UInteractableZone::OnOverlapEnd(UPrimitiveComponent *OverlappedComp, AActor
     {
         // UE_LOG(LogTemp, Warning, TEXT("%s Ended Overlap with: %s"), *GetName(), *OtherActor->GetName());
         UInteractionComponent *Comp = OtherActor->FindComponentByClass<UInteractionComponent>();
-        if (Comp && IsInZone())
+        if (Comp && DetectedObj != nullptr)
         {
             DetectedObj = nullptr;
             OnInteractorLost(Comp);
