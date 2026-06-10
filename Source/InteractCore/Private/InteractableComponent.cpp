@@ -3,15 +3,33 @@
 #include "InteractableComponent.h"
 #include "EnhancedInput\Public\InputTriggers.h"
 
+UInteractableComponent::UInteractableComponent()
+{
+    SphereRadius = 32.0f;
+    SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    SetCollisionResponseToAllChannels(ECR_Ignore);
+    SetCollisionResponseToChannel(InteractTraceChannel, ECR_Block);
+    PRINT("Parent");
+}
 
-void UInteractableComponent::Interact_Implementation(UActorComponent *Provider)
+void UInteractableComponent::OnRegister()
 {
+    Super::OnRegister();
+
+    SetCollisionResponseToChannel(InteractTraceChannel, ECR_Block);
 }
-void UInteractableComponent::Hover_Implementation(UActorComponent *Provider, FHitResult Hit)
+
+void UInteractableComponent::Interact_Implementation(UInteractionComponent *Provider)
 {
+    LOG("INTERACT");
 }
-void UInteractableComponent::UnHover_Implementation(UActorComponent *Provider)
+void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
 {
+    LOG("HOVER");
+}
+void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provider)
+{
+    LOG("UNHOVER");
 }
 // bool UInteractableComponent::CanInteract_Implementation(ETriggerEvent InputEventType, const FInputActionInstance &InputValue) const
 // {

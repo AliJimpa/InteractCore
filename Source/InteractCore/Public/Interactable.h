@@ -18,11 +18,11 @@ class INTERACTCORE_API IInteractable
 
 public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events", meta = (ToolTip = "Need Tip"))
-    void Hover(UActorComponent *Provider, FHitResult Hit);
+    void Hover(UInteractionComponent *Provider, FHitResult Hit);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
-    void UnHover(UActorComponent *Provider);
+    void UnHover(UInteractionComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events")
-    void Interact(UActorComponent *Provider);
+    void Interact(UInteractionComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Input")
     bool ShouldHandleInput(const FInputActionInstance &InputValue) const;
 };

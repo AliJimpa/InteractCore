@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interactor.h"
+#include "Components/ActorComponent.h"
 #include "Net_Interactor.generated.h"
 
 
@@ -15,7 +15,7 @@ enum class EInteractorMode : uint8
 };
 
 UCLASS(Abstract)
-class INTERACTCORE_API UNet_Interactor : public UInteractor
+class INTERACTCORE_API UNet_Interactor : public UActorComponent
 {
 	GENERATED_BODY()
 

@@ -47,5 +47,6 @@ DECLARE_LOG_CATEGORY_EXTERN(Log_InteractCore, Log, All);
 LOG(Format, ...)
 LOG_WARNING(Format, ...)
 LOG_ERROR(Format, ...)
+FASTPRINT(FString message)
 PRINT(FString message)
 #endif
