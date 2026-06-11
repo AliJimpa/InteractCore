@@ -9,7 +9,7 @@ UInteractableComponent::UInteractableComponent()
     SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     SetCollisionResponseToAllChannels(ECR_Ignore);
     SetCollisionResponseToChannel(InteractChannel, ECR_Block);
-    //RINT("Base");
+    // RINT("Base");
 }
 
 void UInteractableComponent::OnRegister()
@@ -19,20 +19,37 @@ void UInteractableComponent::OnRegister()
     SetCollisionResponseToChannel(InteractChannel, ECR_Block);
 }
 
+void UInteractableComponent::BeginPlay()
+{
+    Super::BeginPlay();
+    if (!StartWithAllowed)
+        bIsEnableInteraction = false;
+}
+
 void UInteractableComponent::Interact_Implementation(UInteractionComponent *Provider)
 {
     OnInteract.Broadcast(Provider);
-    LOG("INTERACT");
+    // LOG("INTERACT");
 }
 void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
 {
     bIsHovered = true;
     OnHoverBegin.Broadcast(Provider);
-    LOG("HOVER");
+    // LOG("HOVER");
 }
 void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provider)
 {
     bIsHovered = false;
     OnHoverEnd.Broadcast(Provider);
-    LOG("UNHOVER");
+    // LOG("UNHOVER");
+}
+bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
+{
+    LOG("InputValue")
+    return true;
+}
+
+bool UInteractableComponent::CanInteract() const
+{
+    return true;
 }

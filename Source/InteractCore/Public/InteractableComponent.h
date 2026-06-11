@@ -30,12 +30,21 @@ public:
 
 protected:
 	virtual void OnRegister() override;
+	virtual void BeginPlay() override;
 
 protected:
 	// Implement IInteraction Interface
 	virtual void Interact_Implementation(UInteractionComponent *Provider) override;
 	virtual void Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit) override;
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
+	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const override;
+
+private:
+	bool CanInteract() const;
+
+private:
+	bool bIsHovered = false;
+	bool bIsEnableInteraction = true;
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Hover Events")
@@ -46,13 +55,27 @@ public:
 	FOnInteractionEvent OnInteract;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (DisplayName = "InteractChannel"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
+	bool StartWithAllowed = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	TEnumAsByte<ECollisionChannel> InteractChannel = ECC_Camera;
-
-private:
-	bool bIsHovered = false;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool IsHovered() const { return bIsHovered; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
+	bool IsEnableInteraction() const { return bIsEnableInteraction; }
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Status")
+	void SetEnableInteraction(bool Enable)
+	{
+		bIsEnableInteraction = Enable;
+	}
+
+protected:
+	UFUNCTION(BlueprintPure, BlueprintNativeEvent, Category = "Interaction|Override")
+	bool IsAllowedInteraction(UInteractionComponent *Interactor) const;
+	virtual bool IsAllowedInteraction_Implementation(UInteractionComponent *Interactor) const
+	{
+		return bIsEnableInteraction;
+	}
 };
