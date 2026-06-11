@@ -49,22 +49,22 @@ void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider
 void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
 {
     Super::Hover_Implementation(Provider, Hit);
-    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Beginhover);
+    Indicator->OnInteractionStateChanged(EInteractionState::Beginhover);
 }
 void UInteractablePoint::UnHover_Implementation(UInteractionComponent *Provider)
 {
     Super::UnHover_Implementation(Provider);
-    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Endhover);
+    Indicator->OnInteractionStateChanged(EInteractionState::Endhover);
 }
 void UInteractablePoint::OnInteractorDetected(UInteractionComponent *Interactor)
 {
     Super::OnInteractorDetected(Interactor);
-    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Begindetection);
+    Indicator->OnInteractionStateChanged(EInteractionState::Begindetection);
 }
 void UInteractablePoint::OnInteractorLost(UInteractionComponent *Interactor)
 {
     Super::OnInteractorLost(Interactor);
-    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Enddetection);
+    Indicator->OnInteractionStateChanged(EInteractionState::Enddetection);
 }
 
 bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) const
@@ -107,6 +107,7 @@ void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
         if (Indicator != nullptr)
         {
             widgetComp->SetWidget(Indicator);
+            Indicator->InitializeIndicator(this);
         }
         else
         {
