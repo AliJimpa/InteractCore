@@ -11,7 +11,7 @@ UInteractableDetection::UInteractableDetection()
     PrimaryComponentTick.TickInterval = 0.04f; // 1 / 25 = 0.04 seconds
     bIsImplememtZoneSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractableDetection, K2_ApplyZoneSettings));
     RadiusRange = FVector2D(SphereRadius, SphereRadius * 2);
-    PRINT("Sphere");
+    //PRINT("Sphere");
 }
 
 void UInteractableDetection::OnRegister()
@@ -44,13 +44,11 @@ void UInteractableDetection::BeginPlay()
 {
     Super::BeginPlay();
 
-    UWorld *World = GetWorld();
-    if (!DetectionComponent && World)
+    if (!DetectionComponent)
     {
         DetectionComponent = NewObject<USphereComponent>(GetOwner(), MakeUniqueObjectName(GetOwner(), USphereComponent::StaticClass(), TEXT("DetectionSphere")));
         DetectionComponent->SetupAttachment(this);
         DetectionComponent->RegisterComponent();
-
         ApplyZoneSettings(DetectionComponent);
         if (bIsImplememtZoneSettings)
             K2_ApplyZoneSettings(DetectionComponent);

@@ -28,15 +28,12 @@ private:
 	UInteractableComponent *OwnerInteractable = nullptr;
 
 public:
-	// Call this right after CreateWidget to inject the owner
-	void SetOwnerInteractable(UInteractableComponent *InOwner)
-	{
-		OwnerInteractable = InOwner;
-	}
-
-public:
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Override")
+	void InitializeIndicator(UInteractableComponent *InOwner);
+	virtual void InitializeIndicator_Implementation(UInteractableComponent *InOwner) { OwnerInteractable = InOwner;}
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter", meta = (DisplayName = "Get Owner Interactable"))
 	UInteractableComponent *GetOwnerInteractable() const { return OwnerInteractable; }
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Override")
 	void OnInteractionStateChanged(EInteractionState NewState);
 	virtual void OnInteractionStateChanged_Implementation(EInteractionState NewState) {}

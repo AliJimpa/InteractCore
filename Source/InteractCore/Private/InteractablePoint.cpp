@@ -5,20 +5,22 @@
 UInteractablePoint::UInteractablePoint()
 {
     bIsImplememtWidgetSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractablePoint, K2_ApplyWidgetSettings));
-    PRINT("Point");
+    // PRINT("Point");
 }
 
 void UInteractablePoint::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 1. Create the IndicatorComponent and attach it
-    IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), MakeUniqueObjectName(this, UWidgetComponent::StaticClass(), TEXT("WidgetComponent")));
-    IndicatorComponent->SetupAttachment(this);
-    IndicatorComponent->RegisterComponent();
-    ApplyWidgetSettings(IndicatorComponent);
-    if (bIsImplememtWidgetSettings)
-        K2_ApplyWidgetSettings(IndicatorComponent);
+    if (!IndicatorComponent)
+    {
+        IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), MakeUniqueObjectName(this, UWidgetComponent::StaticClass(), TEXT("WidgetComponent")));
+        IndicatorComponent->SetupAttachment(this);
+        IndicatorComponent->RegisterComponent();
+        ApplyWidgetSettings(IndicatorComponent);
+        if (bIsImplememtWidgetSettings)
+            K2_ApplyWidgetSettings(IndicatorComponent);
+    }
 }
 
 void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
@@ -37,6 +39,32 @@ void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FAc
             bCanSee = false;
         }
     }
+}
+
+void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider)
+{
+    Super::Interact_Implementation(Provider);
+    Indicator->OnInteractionCompleted();
+}
+void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
+{
+    Super::Hover_Implementation(Provider, Hit);
+    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Beginhover);
+}
+void UInteractablePoint::UnHover_Implementation(UInteractionComponent *Provider)
+{
+    Super::UnHover_Implementation(Provider);
+    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Endhover);
+}
+void UInteractablePoint::OnInteractorDetected(UInteractionComponent *Interactor)
+{
+    Super::OnInteractorDetected(Interactor);
+    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Begindetection);
+}
+void UInteractablePoint::OnInteractorLost(UInteractionComponent *Interactor)
+{
+    Super::OnInteractorLost(Interactor);
+    Indicator->OnInteractionStateChanged_Implementation(EInteractionState::Enddetection);
 }
 
 bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) const
@@ -66,23 +94,22 @@ bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) co
 
 void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
 {
-    // 2. Configure the IndicatorComponent
-    widgetComp->SetWidgetSpace(WidgetSpace); // or EWidgetSpace::Screen
+    widgetComp->SetWidgetSpace(WidgetSpace);
     widgetComp->SetDrawSize(WidgetDrawSize);
     widgetComp->SetBlendMode(WidgetBlendMode);
     widgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-    // Manually create the widget and assign it directly
     if (IndicatorClass)
     {
+        // widgetComp->SetWidgetClass(IndicatorClass);
+        // widgetComp->InitWidget();
         Indicator = CreateWidget<UInteractionIndicatorWidget>(GetWorld(), IndicatorClass);
         if (Indicator != nullptr)
         {
-            widgetComp->SetWidget(Indicator); // assign instance directly
+            widgetComp->SetWidget(Indicator);
         }
         else
         {
-            // Print to screen + log
             const FString ErrorMsg = FString::Printf(
                 TEXT("[%s] Widget class '%s' should child of UInteractionIndicatorWidget!"),
                 *GetName(),

@@ -25,6 +25,11 @@ protected:
 
 protected:
 	virtual void ApplyWidgetSettings(UWidgetComponent *widgetComp);
+	virtual void Interact_Implementation(UInteractionComponent *Provider) override;
+	virtual void Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit) override;
+	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
+	virtual void OnInteractorDetected(UInteractionComponent *Interactor) override;
+	virtual void OnInteractorLost(UInteractionComponent *Interactor) override;
 
 private:
 	bool CheckLineOfSight(UInteractionComponent *detectedObj) const;
