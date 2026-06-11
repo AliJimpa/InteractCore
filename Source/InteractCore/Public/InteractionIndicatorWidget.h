@@ -11,10 +11,10 @@ class UInteractableComponent;
 UENUM(BlueprintType)
 enum class EInteractionState : uint8
 {
-	Detected UMETA(DisplayName = "Detected"),
-	Undetected UMETA(DisplayName = "Undetected"),
-	Focused UMETA(DisplayName = "Focused"),
-	Unfocused UMETA(DisplayName = "Unfocused")
+	Begindetection UMETA(DisplayName = "Begin Detection"),
+	Enddetection UMETA(DisplayName = "End Detection"),
+	Beginhover UMETA(DisplayName = "Begin Hover"),
+	Endhover UMETA(DisplayName = "End Hover")
 };
 /**
  *
@@ -23,14 +23,26 @@ UCLASS(Abstract, Blueprintable, BlueprintType)
 class INTERACTCORE_API UInteractionIndicatorWidget : public UUserWidget
 {
 	GENERATED_BODY()
+private:
+	UPROPERTY()
+	UInteractableComponent *OwnerInteractable = nullptr;
 
 public:
+	// Call this right after CreateWidget to inject the owner
+	void SetOwnerInteractable(UInteractableComponent *InOwner)
+	{
+		OwnerInteractable = InOwner;
+	}
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter", meta = (DisplayName = "Get Owner Interactable"))
+	UInteractableComponent *GetOwnerInteractable() const { return OwnerInteractable; }
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Override")
 	void OnInteractionStateChanged(EInteractionState NewState);
 	virtual void OnInteractionStateChanged_Implementation(EInteractionState NewState) {}
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Override")
-	void OnInteractionProgress(UInteractableComponent* comp, float Progress);
-	virtual void OnInteractionProgress_Implementation(UInteractableComponent* comp, float Progress) {}
+	void OnInteractionProgress(float Progress);
+	virtual void OnInteractionProgress_Implementation(float Progress) {}
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction|Override")
 	void OnInteractionCompleted();
 	virtual void OnInteractionCompleted_Implementation() {}

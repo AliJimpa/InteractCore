@@ -35,7 +35,7 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
-	USphereComponent *DetectionComponent;
+	USphereComponent *DetectionComponent = nullptr;
 
 private:
 	UPROPERTY()

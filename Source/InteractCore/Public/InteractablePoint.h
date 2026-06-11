@@ -35,13 +35,13 @@ protected:
 
 private:
 	UPROPERTY()
-	UInteractionIndicatorWidget* Indicator;
+	UInteractionIndicatorWidget *Indicator = nullptr;
 	UPROPERTY()
 	bool bIsImplememtWidgetSettings = false;
 	UPROPERTY()
 	bool bCanSee = false; // that means the component can see target object detected by zone
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UInteractionIndicatorWidget> IndicatorClass;
+	TSubclassOf<UInteractionIndicatorWidget> IndicatorClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	EWidgetSpace WidgetSpace = EWidgetSpace::Screen;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
@@ -59,7 +59,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyWidgetSettings"))
 	void K2_ApplyWidgetSettings(UWidgetComponent *widgetComp) const;
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
-	UInteractionIndicatorWidget* GetIndicator() const { return Indicator; }
+	UInteractionIndicatorWidget *GetIndicator() const { return Indicator; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool CanSeeDetectedObject() const { return IsDetected() ? bCanSee : false; }
 };

@@ -13,7 +13,7 @@ void UInteractablePoint::BeginPlay()
     Super::BeginPlay();
 
     // 1. Create the IndicatorComponent and attach it
-    IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("IndicatorComponent"));
+    IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), MakeUniqueObjectName(this, UWidgetComponent::StaticClass(), TEXT("WidgetComponent")));
     IndicatorComponent->SetupAttachment(this);
     IndicatorComponent->RegisterComponent();
     ApplyWidgetSettings(IndicatorComponent);
