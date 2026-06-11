@@ -37,7 +37,7 @@ public:
 	FOnInteractionEvent OnZoneEnd;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
+	UPROPERTY(VisibleAnywhere, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
 	USphereComponent *SphereZone;
 
 private:
@@ -76,10 +76,7 @@ private:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
-	bool HasDetectedTarget() const
-	{
-		return DetectedObj != nullptr;
-	}
+	bool HasDetectedTarget() const { return DetectedObj != nullptr; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool IsInZone() const { return HasDetectedTarget() ? bCanSee : false; }
 

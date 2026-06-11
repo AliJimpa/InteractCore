@@ -9,7 +9,7 @@ UInteractableComponent::UInteractableComponent()
     SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     SetCollisionResponseToAllChannels(ECR_Ignore);
     SetCollisionResponseToChannel(InteractTraceChannel, ECR_Block);
-    // PRINT("Parent");
+    PRINT("Base");
 }
 
 void UInteractableComponent::OnRegister()

@@ -11,7 +11,7 @@ UInteractableZone::UInteractableZone()
     PrimaryComponentTick.TickInterval = 0.04f; // 1 / 25 = 0.04 seconds
     bIsImplememtZoneSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractableZone, K2_ApplyZoneSettings));
     RadiusRange = FVector2D(SphereRadius, SphereRadius * 2);
-    // PRINT("Child");
+    PRINT("Zone");
 }
 
 void UInteractableZone::OnRegister()
