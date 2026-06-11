@@ -46,8 +46,8 @@ public:
 	FOnInteractionEvent OnInteract;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Interactable", meta = (DisplayName = "Interact Trace Channel"))
-	TEnumAsByte<ECollisionChannel> InteractTraceChannel = ECC_Camera;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (DisplayName = "InteractChannel"))
+	TEnumAsByte<ECollisionChannel> InteractChannel = ECC_Camera;
 
 private:
 	bool bIsHovered = false;
