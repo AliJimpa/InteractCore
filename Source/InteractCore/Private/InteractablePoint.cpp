@@ -12,57 +12,100 @@ void UInteractablePoint::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 1. Create the WidgetComponent and attach it
-    WidgetComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("WidgetComponent"));
-    WidgetComponent->SetupAttachment(this);
-    WidgetComponent->RegisterComponent();
-    ApplyWidgetSettings(WidgetComponent);
+    // 1. Create the IndicatorComponent and attach it
+    IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("IndicatorComponent"));
+    IndicatorComponent->SetupAttachment(this);
+    IndicatorComponent->RegisterComponent();
+    ApplyWidgetSettings(IndicatorComponent);
     if (bIsImplememtWidgetSettings)
-        K2_ApplyWidgetSettings(WidgetComponent);
+        K2_ApplyWidgetSettings(IndicatorComponent);
 }
 
 void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (bCheckLineOfSight)
+    {
+        UInteractionComponent *obj = GetCurrentDetected();
+        if (IsValid(obj))
+        {
+            bCanSee = CheckLineOfSight(obj);
+        }
+        else
+        {
+            bCanSee = false;
+        }
+    }
+}
+
+bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) const
+{
+    // Start from this component location
+    const FVector Start = GetComponentTransform().GetLocation();
+    // Aim for the target to reduce false negatives
+    const FVector End = detectedObj->GetOwner()->GetActorLocation();
+
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(GetOwner()); // ignore self only
+
+    bool bSeen = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, SightChannel, Params);
+
+    // Seen only if the trace hit the target actor directly
+    if (bSeen)
+        bSeen = Hit.GetActor() == detectedObj->GetOwner();
+
+#if WITH_EDITOR
+    if (bShowDebugSight)
+        DrawDebugLine(GetWorld(), Start, End, Hit.bBlockingHit ? FColor::Green : FColor::Red, false, 0.f, 0, 1.f);
+#endif
+
+    return bSeen;
 }
 
 void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
 {
-    // 2. Configure the WidgetComponent
-    WidgetComponent->SetWidgetSpace(WidgetSpace); // or EWidgetSpace::Screen
-    WidgetComponent->SetDrawSize(WidgetDrawSize);
-    WidgetComponent->SetBlendMode(WidgetBlendMode);
+    // 2. Configure the IndicatorComponent
+    widgetComp->SetWidgetSpace(WidgetSpace); // or EWidgetSpace::Screen
+    widgetComp->SetDrawSize(WidgetDrawSize);
+    widgetComp->SetBlendMode(WidgetBlendMode);
+    widgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
     // Manually create the widget and assign it directly
     if (IndicatorClass)
     {
-        UUserWidget *MyWidget = CreateWidget<UUserWidget>(GetWorld(), IndicatorClass);
-        if (MyWidget)
+        Indicator = CreateWidget<UInteractionIndicatorWidget>(GetWorld(), IndicatorClass);
+        if (Indicator != nullptr)
         {
-            WidgetComponent->SetWidget(MyWidget); // assign instance directly
+            widgetComp->SetWidget(Indicator); // assign instance directly
+        }
+        else
+        {
+            // Print to screen + log
+            const FString ErrorMsg = FString::Printf(
+                TEXT("[%s] Widget class '%s' should child of UInteractionIndicatorWidget!"),
+                *GetName(),
+                *IndicatorClass->GetName());
 
-            // Check if widget implements the interface
-            if (MyWidget->GetClass()->ImplementsInterface(UInteractionIndicator::StaticClass()))
+            UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
+
+            if (GEngine)
             {
-                Indicator.SetObject(MyWidget);
-                Indicator.SetInterface(Cast<IInteractionIndicator>(MyWidget));
-                UE_LOG(LogTemp, Log, TEXT("[%s] Widget implements IInteractionIndicator — stored."), *GetName());
-            }
-            else
-            {
-                // Print to screen + log
-                const FString ErrorMsg = FString::Printf(
-                    TEXT("[%s] Widget class '%s' does NOT implement IInteractionIndicator!"),
-                    *GetName(),
-                    *IndicatorClass->GetName());
-
-                UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
-
-                if (GEngine)
-                {
-                    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, ErrorMsg);
-                }
+                GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, ErrorMsg);
             }
         }
     }
+}
+
+void UInteractablePoint::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    // Unbind overlap events
+    if (IndicatorComponent != nullptr)
+    {
+        IndicatorComponent->DestroyComponent();
+        IndicatorComponent = nullptr;
+    }
+
+    Super::EndPlay(EndPlayReason);
 }

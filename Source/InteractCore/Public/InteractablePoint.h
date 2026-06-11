@@ -3,16 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractableZone.h"
+#include "InteractableDetection.h"
 #include "Components/WidgetComponent.h"
-#include "InteractionIndicator.h"
+#include "InteractionIndicatorWidget.h"
 #include "InteractablePoint.generated.h"
 
 /**
  *
  */
-UCLASS()
-class INTERACTCORE_API UInteractablePoint : public UInteractableZone
+UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "InteractablePoint", Tooltip = "Handel Interactable Indicator"))
+class INTERACTCORE_API UInteractablePoint : public UInteractableDetection
 {
 	GENERATED_BODY()
 public:
@@ -21,31 +21,45 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
 	virtual void ApplyWidgetSettings(UWidgetComponent *widgetComp);
 
+private:
+	bool CheckLineOfSight(UInteractionComponent *detectedObj) const;
+
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Widget")
-	TSubclassOf<class UUserWidget> IndicatorClass;
+	UPROPERTY(VisibleAnywhere, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
+	class UWidgetComponent *IndicatorComponent;
 
 private:
 	UPROPERTY()
-	class UWidgetComponent *WidgetComponent;
-	UPROPERTY()
-	TScriptInterface<IInteractionIndicator> Indicator;
+	UInteractionIndicatorWidget* Indicator;
 	UPROPERTY()
 	bool bIsImplememtWidgetSettings = false;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Widget", meta = (AllowPrivateAccess = "true"))
-	EWidgetSpace WidgetSpace = EWidgetSpace::World;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Widget", meta = (AllowPrivateAccess = "true"))
-	FVector2D WidgetDrawSize = FVector2D(800.f, 600.f);
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Widget", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY()
+	bool bCanSee = false; // that means the component can see target object detected by zone
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UInteractionIndicatorWidget> IndicatorClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
+	EWidgetSpace WidgetSpace = EWidgetSpace::Screen;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
+	FVector2D WidgetDrawSize = FVector2D(250.f, 250.f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	EWidgetBlendMode WidgetBlendMode = EWidgetBlendMode::Transparent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (Tooltip = "When true, if target is inside the detection sphere and line-of-sight trace will run each Tick.", AllowPrivateAccess = "true"))
+	bool bCheckLineOfSight = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<ECollisionChannel> SightChannel = ECC_Camera;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))
+	bool bShowDebugSight = false;
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyWidgetSettings"))
 	void K2_ApplyWidgetSettings(UWidgetComponent *widgetComp) const;
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
-	TScriptInterface<IInteractionIndicator> GetIndicator() const { return Indicator; }
+	UInteractionIndicatorWidget* GetIndicator() const { return Indicator; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
+	bool CanSeeDetectedObject() const { return IsDetected() ? bCanSee : false; }
 };

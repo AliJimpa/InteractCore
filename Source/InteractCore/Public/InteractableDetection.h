@@ -81,7 +81,6 @@ protected:
 	void K2_ApplyZoneSettings(USphereComponent *Zone) const;
 	UFUNCTION(BlueprintNativeEvent, Category = "Interactable|Override")
 	void FirstCheck(float radius , ECollisionChannel Channel);
-	//void FirstCheck(float Radius, TEnumAsByte<ECollisionChannel> Channel);
 
 private:
 	UFUNCTION()
