@@ -30,6 +30,7 @@ protected:
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
 	virtual void OnInteractorDetected(UInteractionComponent *Interactor) override;
 	virtual void OnInteractorLost(UInteractionComponent *Interactor) override;
+	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const override;
 
 private:
 	bool CheckLineOfSight(UInteractionComponent *detectedObj) const;
