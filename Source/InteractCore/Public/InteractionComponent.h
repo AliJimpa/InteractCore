@@ -7,7 +7,6 @@
 #include "InteractDebug.h"
 #include "InteractionComponent.generated.h"
 
-
 class UInputAction;
 struct FInputActionInstance;
 class UEnhancedInputComponent;
@@ -36,12 +35,12 @@ enum class EInteractionSearchMode : uint8
 /**
  * @class UInteractionComponent
  * @brief Abstract base class for managing interaction events such as hovering, unhovering, and interacting with targets.
- * 
+ *
  * This component acts as a foundation for custom interaction systems, handling:
  * - Hover/Unhover events for UI or interactable objects via the target interface.
  * - Core interaction event management based on input setup.
  * - Pivot management to determine the origin of detection.
- * 
+ *
  * Use derived classes to create specific interaction systems tailored to your game's needs,
  * such as camera-based tracing, collision detection, or mouse-based interactions.
  */
@@ -57,6 +56,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	/**
 	 * Called when a controller associated with this component becomes available.
 	 *
@@ -86,8 +86,10 @@ private:
 	TObjectPtr<USceneComponent> PivotComponent;
 	FTransform PivotValue = FTransform::Identity;
 
+	TArray<uint32> InteractionBindingHandles;
 	void SetupInteractionInput(AController *Controller);
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
+	void UnbindInteractionInput(UEnhancedInputComponent *EIC);
 	void OnInteractInput(const FInputActionInstance &Instance);
 
 public:

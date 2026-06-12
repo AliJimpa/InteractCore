@@ -26,6 +26,20 @@ void UInteractionComponent::BeginPlay()
 	}
 	OnControllerReady(Controller);
 }
+void UInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AActor *Owner = GetOwner())
+	{
+		if (APawn *Pawn = Cast<APawn>(Owner))
+		{
+			if (UEnhancedInputComponent *EIC = Cast<UEnhancedInputComponent>(Pawn->InputComponent))
+			{
+				UnbindInteractionInput(EIC);
+			}
+		}
+	}
+	Super::EndPlay(EndPlayReason);
+}
 
 // Called every frame
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
@@ -237,11 +251,19 @@ AController *UInteractionComponent::ResolveControllerFromOwnership() const
 }
 void UInteractionComponent::BindInteractionInput(UEnhancedInputComponent *EIC)
 {
-	EIC->BindAction(InteractionInput, ETriggerEvent::Started, this, &UInteractionComponent::OnInteractInput);
-	EIC->BindAction(InteractionInput, ETriggerEvent::Triggered, this, &UInteractionComponent::OnInteractInput);
-	EIC->BindAction(InteractionInput, ETriggerEvent::Ongoing, this, &UInteractionComponent::OnInteractInput);
-	EIC->BindAction(InteractionInput, ETriggerEvent::Canceled, this, &UInteractionComponent::OnInteractInput);
-	EIC->BindAction(InteractionInput, ETriggerEvent::Completed, this, &UInteractionComponent::OnInteractInput);
+	InteractionBindingHandles.Add(EIC->BindAction(InteractionInput, ETriggerEvent::Started, this, &UInteractionComponent::OnInteractInput).GetHandle());
+	InteractionBindingHandles.Add(EIC->BindAction(InteractionInput, ETriggerEvent::Triggered, this, &UInteractionComponent::OnInteractInput).GetHandle());
+	InteractionBindingHandles.Add(EIC->BindAction(InteractionInput, ETriggerEvent::Ongoing, this, &UInteractionComponent::OnInteractInput).GetHandle());
+	InteractionBindingHandles.Add(EIC->BindAction(InteractionInput, ETriggerEvent::Canceled, this, &UInteractionComponent::OnInteractInput).GetHandle());
+	InteractionBindingHandles.Add(EIC->BindAction(InteractionInput, ETriggerEvent::Completed, this, &UInteractionComponent::OnInteractInput).GetHandle());
+}
+void UInteractionComponent::UnbindInteractionInput(UEnhancedInputComponent *EIC)
+{
+	for (uint32 Handle : InteractionBindingHandles)
+	{
+		EIC->RemoveBindingByHandle(Handle);
+	}
+	InteractionBindingHandles.Empty();
 }
 void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance)
 {
