@@ -74,11 +74,11 @@ protected:
 	EInteractionUsageMode InteractMode = EInteractionUsageMode::Once;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction", meta = (EditCondition = "InteractMode == EInteractionUsageMode::Cooldown", EditConditionHides, ClampMin = "0.0"))
 	float CooldowDuration = 1.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Input")
 	EInteractionInputMode InputMode = EInteractionInputMode::Press;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Input", meta = (EditCondition = "InputMode == EInteractionInputMode::Hold ", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Input", meta = (EditCondition = "InputMode == EInteractionInputMode::Hold || InputMode == EInteractionInputMode::ChargedRelease", EditConditionHides))
 	float HoldTimeThreshold = 1.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Input", meta = (EditCondition = "InputMode == EInteractionInputMode::DoubleClick ", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Input", meta = (EditCondition = "InputMode == EInteractionInputMode::DoubleClick ", EditConditionHides))
 	float DoubleTapInterval = 0.3f;
 
 public:
