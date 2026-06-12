@@ -52,6 +52,7 @@ private:
 private:
 	bool bIsHovered = false;
 	bool bHasInteracted = false;
+	mutable bool bInteractionPending = false;
 	float NextAllowedInteractTime = 0.0f;
 	mutable float LastPressTime = -1000.f;
 
@@ -88,6 +89,8 @@ public:
 	bool IsEnableInteraction() const { return EnableInteraction; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool HasInteracted() const { return bHasInteracted; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
+	bool IsInteractionPending() const { return bInteractionPending; }
 	UFUNCTION(BlueprintCallable, Category = "Interaction|Functions")
 	void SetEnableInteraction(bool Enable)
 	{

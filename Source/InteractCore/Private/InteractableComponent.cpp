@@ -48,10 +48,22 @@ void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provi
 }
 bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
 {
+    const ETriggerEvent TriggerEvent = InputValue.GetTriggerEvent();
+
+    // Check for detect pending
+    if (TriggerEvent == ETriggerEvent::Started)
+    {
+        bInteractionPending = true;
+    }
+    else if (TriggerEvent == ETriggerEvent::Completed ||
+             TriggerEvent == ETriggerEvent::Canceled)
+    {
+        bInteractionPending = false;
+    }
+
+    // Cehck if once or colldown 
     if (!CanInteract())
         return false;
-
-    const ETriggerEvent TriggerEvent = InputValue.GetTriggerEvent();
 
     switch (InputMode)
     {
