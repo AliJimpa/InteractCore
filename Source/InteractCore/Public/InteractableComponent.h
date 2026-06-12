@@ -105,9 +105,9 @@ public:
 
 protected:
 	UFUNCTION(BlueprintPure, BlueprintNativeEvent, Category = "Interaction|Override")
-	bool IsAllowedInteraction(UInteractionComponent *Interactor) const;
-	virtual bool IsAllowedInteraction_Implementation(UInteractionComponent *Interactor) const
+	bool IsAllowedInteraction() const;
+	virtual bool IsAllowedInteraction_Implementation() const
 	{
-		return EnableInteraction && !bHasInteracted;
+		return EnableInteraction && CanInteract();
 	}
 };

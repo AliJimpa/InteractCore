@@ -36,12 +36,16 @@ void UInteractableComponent::Interact_Implementation(UInteractionComponent *Prov
 }
 void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
 {
+    if (!IsAllowedInteraction())
+        return;
     bIsHovered = true;
     OnHoverBegin.Broadcast(Provider);
     // LOG("HOVER");
 }
 void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provider)
 {
+    if (!IsAllowedInteraction())
+        return;
     bIsHovered = false;
     OnHoverEnd.Broadcast(Provider);
     // LOG("UNHOVER");
@@ -61,8 +65,8 @@ bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputAction
         bInteractionPending = false;
     }
 
-    // Cehck if once or colldown 
-    if (!CanInteract())
+    // Cehck if once or colldown
+    if (!IsAllowedInteraction())
         return false;
 
     switch (InputMode)
