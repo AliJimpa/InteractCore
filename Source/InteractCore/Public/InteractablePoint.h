@@ -50,9 +50,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	EWidgetSpace WidgetSpace = EWidgetSpace::Screen;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
+	EWidgetBlendMode WidgetBlendMode = EWidgetBlendMode::Transparent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	FVector2D WidgetDrawSize = FVector2D(250.f, 250.f);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
-	EWidgetBlendMode WidgetBlendMode = EWidgetBlendMode::Transparent;
+	FVector WidgetOffset = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (Tooltip = "When true, if target is inside the detection sphere and line-of-sight trace will run each Tick.", AllowPrivateAccess = "true"))
 	bool bCheckLineOfSight = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Sight", meta = (AllowPrivateAccess = "true"))

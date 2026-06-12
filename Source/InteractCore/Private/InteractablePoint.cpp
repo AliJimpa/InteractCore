@@ -94,6 +94,7 @@ bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) co
 
 void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
 {
+    widgetComp->SetRelativeLocation(WidgetOffset);
     widgetComp->SetWidgetSpace(WidgetSpace);
     widgetComp->SetDrawSize(WidgetDrawSize);
     widgetComp->SetBlendMode(WidgetBlendMode);
