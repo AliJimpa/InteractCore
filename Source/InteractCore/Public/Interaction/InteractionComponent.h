@@ -90,7 +90,6 @@ private:
 	void SetupInteractionInput(AController *Controller);
 	void BindInteractionInput(UEnhancedInputComponent *EIC);
 	void UnbindInteractionInput(UEnhancedInputComponent *EIC);
-	void OnInteractInput(const FInputActionInstance &Instance);
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
@@ -132,6 +131,10 @@ public:
 	void SetPivotToTransform(const FTransform &InValue);
 	UFUNCTION(BlueprintCallable, Category = "Interaction|Setter")
 	void SetInteractionActive(bool bEnable);
+
+private:
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Function", meta = (AllowPrivateAccess = "true"))
+	void OnInteractInput(const FInputActionInstance &Instance);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction")
