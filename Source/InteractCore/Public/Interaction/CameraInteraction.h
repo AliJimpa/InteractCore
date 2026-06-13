@@ -63,7 +63,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	EInteractionTraceAxis TraceAxis = EInteractionTraceAxis::Forward;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (EditCondition = "TraceType == EInteractionTraceType::SphereTrace || TraceType == EInteractionTraceType::Auto", EditConditionHides))
-	TArray<float> SphereTraceRadii = {5.f, 10.f, 15.f}; // 3 levels
+	TArray<float> FallbackTrace = {5.f, 10.f, 15.f}; // 3 levels
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
 	bool bDrawDebugTrace = false;

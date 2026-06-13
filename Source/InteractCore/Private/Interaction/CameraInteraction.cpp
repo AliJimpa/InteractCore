@@ -5,9 +5,9 @@
 
 UCameraInteraction::UCameraInteraction() : Super()
 {
-    if (TraceType == EInteractionTraceType::Auto && SphereTraceRadii.IsEmpty())
+    if (TraceType == EInteractionTraceType::Auto && FallbackTrace.IsEmpty())
     {
-        SphereTraceRadii = {5.f, 10.f, 15.f};
+        FallbackTrace = {5.f, 10.f, 15.f};
     }
 }
 
@@ -67,7 +67,7 @@ bool UCameraInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
     if (TraceType == EInteractionTraceType::SphereTrace || (TraceType == EInteractionTraceType::Auto && !bHit))
     {
         // Sphere Fallback
-        for (float Radius : SphereTraceRadii)
+        for (float Radius : FallbackTrace)
         {
             bHit = World->SweepSingleByChannel(
                 OutHit,
