@@ -1,4 +1,5 @@
 # InteractCore
+![InteractCore](https://github.com/AliJimpa/InteractCore/blob/main/Resources/Icon128.png) 
 `InteractCore` is a lightweight and extensible interaction framework designed for game development.
 
 # Concept
