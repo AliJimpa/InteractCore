@@ -9,7 +9,7 @@
 /**
  *
  */
-UCLASS(Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "InteractableDetection", Tooltip = "Handel Interactable Collider"))
+UCLASS(Abstract, Blueprintable, BlueprintType, ClassGroup = (InteractCore), meta = (BlueprintSpawnableComponent, DisplayName = "InteractableDetection", Tooltip = "Handel Interactable Collider"))
 class INTERACTCORE_API UInteractableDetection : public UInteractableComponent
 {
 	GENERATED_BODY()
@@ -80,7 +80,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyZoneSettings"))
 	void K2_ApplyZoneSettings(USphereComponent *Zone) const;
 	UFUNCTION(BlueprintNativeEvent, Category = "Interactable|Override")
-	void FirstCheck(float radius , ECollisionChannel Channel);
+	void FirstCheck(float radius, ECollisionChannel Channel);
 
 private:
 	UFUNCTION()
