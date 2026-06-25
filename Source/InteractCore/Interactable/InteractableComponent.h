@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
-#include "Interactable.h"
-#include "InteractDebug.h"
+#include "Interface/Interactable.h"
+#include "Engine/InteractDebug.h"
 #include "InteractableComponent.generated.h"
 
 UENUM()

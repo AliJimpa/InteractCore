@@ -1,7 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractablePoint.h"
-#include "Interactable.h"
+#include "Interface/Interactable.h"
+#include "Interaction/InteractionComponent.h"
+#include "EnhancedInput\Public\InputAction.h"
 
 UInteractablePoint::UInteractablePoint()
 {

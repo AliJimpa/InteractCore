@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "InteractDebug.h"
+#include "Engine/InteractDebug.h"
 #include "InteractionComponent.generated.h"
 
 class UInputAction;

@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "InteractCore.h"
-#include "InteractDebug.h"
+#include "Engine/InteractDebug.h"
 
 #define LOCTEXT_NAMESPACE "FInteractCoreModule"
 

@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
-using System.IO;
 
 public class InteractCore : ModuleRules
 {
@@ -9,24 +8,21 @@ public class InteractCore : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		PublicIncludePaths.Add(ModuleDirectory);
+		PrivateIncludePaths.Add(ModuleDirectory);
+
 		PublicIncludePaths.AddRange(
-			new string[] {
-	 			Path.Combine(ModuleDirectory, "Public"),
-				Path.Combine(ModuleDirectory, "Public", "Interaction"),
-				Path.Combine(ModuleDirectory, "Public", "Interactable"),
-				Path.Combine(ModuleDirectory, "Public", "Interface"),
-				Path.Combine(ModuleDirectory, "Public", "Widget"),
+			new string[]
+			{
+
 			}
 			);
 
 
 		PrivateIncludePaths.AddRange(
-			new string[] {
-				Path.Combine(ModuleDirectory, "Private"),
-        		Path.Combine(ModuleDirectory, "Private", "Interaction"),
-        		Path.Combine(ModuleDirectory, "Private", "Interactable"),
-        		Path.Combine(ModuleDirectory, "Private", "Interface"),
-        		Path.Combine(ModuleDirectory, "Private", "Widget"),
+			new string[]
+			{
+
 			}
 			);
 

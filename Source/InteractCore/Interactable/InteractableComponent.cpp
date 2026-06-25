@@ -2,6 +2,7 @@
 
 #include "InteractableComponent.h"
 #include "EnhancedInput\Public\InputTriggers.h"
+#include "EnhancedInput\Public\InputAction.h"
 
 UInteractableComponent::UInteractableComponent()
 {

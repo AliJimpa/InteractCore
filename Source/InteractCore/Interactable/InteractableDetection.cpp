@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractableDetection.h"
-#include "InteractionComponent.h"
+#include "Interaction/InteractionComponent.h"
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
 #endif

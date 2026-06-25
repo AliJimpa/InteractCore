@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "InteractableDetection.h"
 #include "Components/WidgetComponent.h"
-#include "InteractionIndicatorWidget.h"
+#include "Widget/InteractionIndicatorWidget.h"
 #include "InteractablePoint.generated.h"
 
 /**

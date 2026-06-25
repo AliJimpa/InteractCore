@@ -2,6 +2,7 @@
 
 #include "InteractionComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Interface/Interactable.h"
 
 // Sets default values for this component's properties
 UInteractionComponent::UInteractionComponent()
