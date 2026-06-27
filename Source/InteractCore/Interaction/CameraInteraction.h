@@ -59,7 +59,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (ClampMin = "100", BlueprintProtected))
 	float TraceDistance = 500.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
-	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Camera;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (BlueprintProtected))
 	EInteractionTraceAxis TraceAxis = EInteractionTraceAxis::Forward;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction|Setting", meta = (EditCondition = "TraceType == EInteractionTraceType::SphereTrace || TraceType == EInteractionTraceType::Auto", EditConditionHides))
