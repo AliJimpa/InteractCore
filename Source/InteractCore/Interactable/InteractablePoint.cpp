@@ -151,7 +151,7 @@ void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
         // widgetComp->SetWidgetClass(IndicatorClass);
         // widgetComp->InitWidget();
         widgetComp->SetWidget(Widget);
-        Indicator->InitializeIndicator(this);
+        IInteractionIndicator::Execute_InitializeIndicator(Indicator.GetObject(),this);
     }
     else
     {
