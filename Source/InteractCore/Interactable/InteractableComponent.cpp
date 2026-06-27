@@ -123,12 +123,6 @@ bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputAction
 
 bool UInteractableComponent::CanInteract() const
 {
-    const UWorld *World = GetWorld();
-    if (!World)
-    {
-        return false;
-    }
-
     switch (InteractMode)
     {
     case EInteractionUsageMode::Once:
@@ -143,12 +137,20 @@ bool UInteractableComponent::CanInteract() const
 
     case EInteractionUsageMode::Cooldown:
     {
-        return World->GetTimeSeconds() >= NextAllowedInteractTime;
+        const UWorld *World = GetWorld();
+        if (World)
+        {
+            return World->GetTimeSeconds() >= NextAllowedInteractTime;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     default:
     {
-        return false;
+        return true;
     }
     }
 }
