@@ -8,6 +8,8 @@
 #include "Engine/InteractDebug.h"
 #include "InteractableComponent.generated.h"
 
+struct FInputActionInstance;
+
 UENUM()
 enum class EInteractionInputMode : uint8
 {
@@ -28,6 +30,7 @@ enum class EInteractionUsageMode : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionEvent, UInteractionComponent *, Provider);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInputInteractionEvent, UInteractionComponent *, Provider, const FInputActionInstance &, InputInstance);
 
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Base class for all Interactable component."))
 class INTERACTCORE_API UInteractableComponent : public USphereComponent, public IInteractable
@@ -41,8 +44,8 @@ protected:
 
 protected:
 	// Implement IInteraction Interface
-	virtual void Interact_Implementation(UInteractionComponent *Provider) override;
-	virtual void Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit) override;
+	virtual void Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance) override;
+	virtual void Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit) override;
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
 	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const override;
 
@@ -62,7 +65,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "UnHover Events")
 	FOnInteractionEvent OnHoverEnd;
 	UPROPERTY(BlueprintAssignable, Category = "Interact Events")
-	FOnInteractionEvent OnInteract;
+	FOnInputInteractionEvent OnInteract;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (AllowPrivateAccess = "true"))

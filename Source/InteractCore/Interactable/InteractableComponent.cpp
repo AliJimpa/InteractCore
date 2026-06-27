@@ -20,7 +20,7 @@ void UInteractableComponent::OnRegister()
     SetCollisionResponseToChannel(InteractChannel, ECR_Block);
 }
 
-void UInteractableComponent::Interact_Implementation(UInteractionComponent *Provider)
+void UInteractableComponent::Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance)
 {
     if (InteractMode != EInteractionUsageMode::Multi)
     {
@@ -32,10 +32,10 @@ void UInteractableComponent::Interact_Implementation(UInteractionComponent *Prov
         if (World != nullptr)
             NextAllowedInteractTime = World->GetTimeSeconds() + CooldowDuration;
     }
-    OnInteract.Broadcast(Provider);
+    OnInteract.Broadcast(Provider, Instance);
     // LOG("INTERACT");
 }
-void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
+void UInteractableComponent::Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit)
 {
     if (!IsAllowedInteraction())
         return;

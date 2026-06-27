@@ -8,7 +8,7 @@
 UInteractablePoint::UInteractablePoint()
 {
     bIsImplememtWidgetSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractablePoint, K2_ApplyWidgetSettings));
-    
+
     static ConstructorHelpers::FObjectFinder<UClass> WidgetClassFinder(TEXT("/InteractCore/Widgets/WBP_InteractionIndicator.WBP_InteractionIndicator_C"));
     if (WidgetClassFinder.Succeeded())
     {
@@ -50,12 +50,12 @@ void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FAc
     }
 }
 
-void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider)
+void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance)
 {
-    Super::Interact_Implementation(Provider);
+    Super::Interact_Implementation(Provider, Hit, Instance);
     Indicator->OnInteractionCompleted();
 }
-void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, FHitResult Hit)
+void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit)
 {
     Super::Hover_Implementation(Provider, Hit);
     Indicator->OnInteractionStateChanged(EInteractionState::Beginhover);

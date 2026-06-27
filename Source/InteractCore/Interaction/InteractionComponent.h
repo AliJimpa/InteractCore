@@ -75,6 +75,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 private:
+	UPROPERTY()
+	FHitResult CurrentHit;
+	UPROPERTY()
 	TScriptInterface<IInteractable> CurrentInteractable = nullptr;
 	void UpdateInteraction();
 	void SetCurrentInteractable(const TScriptInterface<IInteractable> &NewInteractable, const FHitResult &HitResult);
@@ -96,6 +99,8 @@ public:
 	EInteractionSearchMode GetMode() const { return DetectionMode; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
 	const TScriptInterface<IInteractable> GetCurrentInteractable() const { return CurrentInteractable; }
+	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
+	const FHitResult &GetCurrentHit() const { return CurrentHit; }
 	/**
 	 * Returns the transform used as the interaction pivot.
 	 *

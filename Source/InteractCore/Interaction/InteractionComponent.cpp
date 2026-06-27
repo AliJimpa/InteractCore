@@ -87,26 +87,25 @@ void UInteractionComponent::SetPivotToTransform(const FTransform &InValue)
 // Core Interaction Logic
 void UInteractionComponent::UpdateInteraction()
 {
-	FHitResult HitResult;
 	TScriptInterface<IInteractable> NewFocused = nullptr;
 
-	if (TryGetDetectedFocused(HitResult))
+	if (TryGetDetectedFocused(CurrentHit))
 	{
 		UObject *CurrentObject = CurrentInteractable.GetObject();
 		if (CurrentObject)
 		{
-			if (HitResult.GetActor() == CurrentObject || HitResult.GetComponent() == CurrentObject)
+			if (CurrentHit.GetActor() == CurrentObject || CurrentHit.GetComponent() == CurrentObject)
 			{
 				return;
 			}
 		}
 
-		NewFocused = ResolveInteractableFromHit(HitResult);
+		NewFocused = ResolveInteractableFromHit(CurrentHit);
 	}
 
 	if (NewFocused.GetObject() != CurrentInteractable.GetObject())
 	{
-		SetCurrentInteractable(NewFocused, HitResult);
+		SetCurrentInteractable(NewFocused, CurrentHit);
 	}
 }
 void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInteractable> &NewInteractable, const FHitResult &HitResult)
@@ -126,10 +125,6 @@ void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInter
 			CurrentInteractable = NewInteractable;
 			IInteractable::Execute_Hover(CurrentInteractable.GetObject(), this, HitResult);
 			// LOG_WARNING("Hover");
-		}
-		else
-		{
-			// LOG_WARNING("Can't Hover");
 		}
 	}
 }
@@ -274,7 +269,7 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 		{
 			if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
 			{
-				IInteractable::Execute_Interact(CurrentObject, this);
+				IInteractable::Execute_Interact(CurrentObject, this, CurrentHit, Instance);
 			}
 		}
 	}
