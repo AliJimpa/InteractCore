@@ -55,7 +55,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 protected:
-	virtual bool CustomAdaptiveTick(float Threshould) { return true; };
+	virtual bool CustomAdaptiveTick(float Threshould)
+	{
+		PRINT("CutomAdaptive Function is Empty!");
+		return true;
+	};
 	virtual bool CanHover(UObject *Interactable) const override;
 	virtual bool CanInteract(UObject *Interactable) const override;
 
