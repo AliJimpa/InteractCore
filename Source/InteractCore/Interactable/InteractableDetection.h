@@ -29,9 +29,9 @@ protected:
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnInteractionEvent OnZoneBegin;
+	FOnInteractionEvent OnDetectionBegin;
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnInteractionEvent OnZoneEnd;
+	FOnInteractionEvent OnDetectionEnd;
 
 protected:
 	UPROPERTY(VisibleAnywhere, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
@@ -66,7 +66,7 @@ private:
 	FVector2D RadiusRange = FVector2D::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|ToggleRadius", meta = (ToolTip = "If enabled, the DetectionSphere radius change when agent begin overlap and end", AllowPrivateAccess = "true"))
-	bool bToggleRadius = false;
+	bool bToggleRadiusbased = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|ToggleRadius", meta = (AllowPrivateAccess = "true"))
 	float ToggleRadius = 700.f;
 

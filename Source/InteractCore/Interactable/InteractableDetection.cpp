@@ -100,7 +100,7 @@ void UInteractableDetection::FirstCheck_Implementation(float radius, ECollisionC
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
-            OnZoneBegin.Broadcast(Comp);
+            OnDetectionBegin.Broadcast(Comp);
         }
     }
 }
@@ -115,7 +115,7 @@ void UInteractableDetection::OnOverlapBegin(UPrimitiveComponent *OverlappedComp,
         {
             DetectedObj = Comp;
             OnInteractorDetected(Comp);
-            OnZoneBegin.Broadcast(Comp);
+            OnDetectionBegin.Broadcast(Comp);
         }
     }
 }
@@ -129,7 +129,7 @@ void UInteractableDetection::OnOverlapEnd(UPrimitiveComponent *OverlappedComp, A
         {
             DetectedObj = nullptr;
             OnInteractorLost(Comp);
-            OnZoneEnd.Broadcast(Comp);
+            OnDetectionEnd.Broadcast(Comp);
         }
     }
 }
@@ -153,12 +153,12 @@ void UInteractableDetection::ApplyZoneSettings(USphereComponent *Sphere) const
 
 void UInteractableDetection::OnInteractorDetected(UInteractionComponent *Interactor)
 {
-    if (bToggleRadius)
+    if (bToggleRadiusbased)
         DetectionComponent->SetSphereRadius(ToggleRadius);
 }
 void UInteractableDetection::OnInteractorLost(UInteractionComponent *Interactor)
 {
-    if (bToggleRadius)
+    if (bToggleRadiusbased)
         DetectionComponent->SetSphereRadius(DetectionRadius);
 }
 
