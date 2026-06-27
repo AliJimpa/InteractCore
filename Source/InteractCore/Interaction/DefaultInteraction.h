@@ -38,11 +38,11 @@ enum class EInteractionAdaptiveTickTrigger : uint8
 /**
  * @class UDefaultInteraction
  * @brief Abstract base class for handling interaction permissions and adaptive tick management.
- * 
+ *
  * Implements key interaction logic:
  * - Overrides permission checks for hovering and interaction (via CanHover and CanInteract).
  * - Supports dynamic tick interval management to optimize performance in specific gameplay scenarios.
- * 
+ *
  * Extend or use this class to build advanced interaction systems with permission-based and adaptive features.
  */
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Core framework for standard interactions."))
@@ -55,7 +55,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 protected:
-	virtual bool CustomAdaptiveTick(float Threshould) PURE_VIRTUAL(UDefaultInteraction::CustomAdaptiveTick, return false;);
+	virtual bool CustomAdaptiveTick(float Threshould) { return true; };
 	virtual bool CanHover(UObject *Interactable) const override;
 	virtual bool CanInteract(UObject *Interactable) const override;
 
