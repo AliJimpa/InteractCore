@@ -8,6 +8,12 @@
 UInteractablePoint::UInteractablePoint()
 {
     bIsImplememtWidgetSettings = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UInteractablePoint, K2_ApplyWidgetSettings));
+    
+    static ConstructorHelpers::FObjectFinder<UClass> WidgetClassFinder(TEXT("/InteractCore/Widgets/WBP_InteractionIndicator.WBP_InteractionIndicator_C"));
+    if (WidgetClassFinder.Succeeded())
+    {
+        IndicatorClass = WidgetClassFinder.Object;
+    }
     // PRINT("Point");
 }
 
