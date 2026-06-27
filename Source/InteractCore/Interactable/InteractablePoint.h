@@ -26,11 +26,14 @@ protected:
 protected:
 	virtual void ApplyWidgetSettings(UWidgetComponent *widgetComp);
 	virtual void Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance) override;
-	virtual void Hover_Implementation(UInteractionComponent *Provider, const FHitResult& Hit) override;
+	virtual void Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit) override;
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
 	virtual void OnInteractorDetected(UInteractionComponent *Interactor) override;
 	virtual void OnInteractorLost(UInteractionComponent *Interactor) override;
 	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+#endif
 
 private:
 	bool CheckLineOfSight(UInteractionComponent *detectedObj) const;
@@ -41,13 +44,13 @@ protected:
 
 private:
 	UPROPERTY()
-	UInteractionIndicatorWidget *Indicator = nullptr;
+	TScriptInterface<IInteractionIndicator> Indicator = nullptr;
 	UPROPERTY()
 	bool bIsImplememtWidgetSettings = false;
 	UPROPERTY()
 	bool bCanSee = false; // that means the component can see target object detected by zone
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UInteractionIndicatorWidget> IndicatorClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true", MustImplement = "/Script/InteractCore.InteractionIndicator"))
+	TSubclassOf<UUserWidget> IndicatorClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	EWidgetSpace WidgetSpace = EWidgetSpace::Screen;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
@@ -67,7 +70,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ApplyWidgetSettings"))
 	void K2_ApplyWidgetSettings(UWidgetComponent *widgetComp) const;
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter")
-	UInteractionIndicatorWidget *GetIndicator() const { return Indicator; }
+	TScriptInterface<IInteractionIndicator> GetIndicator() const { return Indicator; }
 	UFUNCTION(BlueprintPure, Category = "Interaction|Status")
 	bool CanSeeDetectedObject() const { return IsDetected() ? bCanSee : false; }
 };

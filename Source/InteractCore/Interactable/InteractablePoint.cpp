@@ -21,6 +21,13 @@ void UInteractablePoint::BeginPlay()
 {
     Super::BeginPlay();
 
+    if (IndicatorClass)
+    {
+        checkf(
+            IndicatorClass->ImplementsInterface(UInteractionIndicator::StaticClass()),
+            TEXT("IndicatorClass must implement UInteractionIndicator"));
+    }
+
     if (!IndicatorComponent)
     {
         IndicatorComponent = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), MakeUniqueObjectName(this, UWidgetComponent::StaticClass(), TEXT("WidgetComponent")));
@@ -53,33 +60,34 @@ void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance)
 {
     Super::Interact_Implementation(Provider, Hit, Instance);
-    Indicator->OnInteractionCompleted();
+    IInteractionIndicator::Execute_OnInteractionCompleted(Indicator.GetObject());
 }
 void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit)
 {
     Super::Hover_Implementation(Provider, Hit);
-    Indicator->OnInteractionStateChanged(EInteractionState::Beginhover);
+    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Beginhover);
 }
 void UInteractablePoint::UnHover_Implementation(UInteractionComponent *Provider)
 {
     Super::UnHover_Implementation(Provider);
-    Indicator->OnInteractionStateChanged(EInteractionState::Endhover);
+    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Endhover);
 }
 void UInteractablePoint::OnInteractorDetected(UInteractionComponent *Interactor)
 {
     Super::OnInteractorDetected(Interactor);
-    Indicator->OnInteractionStateChanged(EInteractionState::Begindetection);
+    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Begindetection);
 }
 void UInteractablePoint::OnInteractorLost(UInteractionComponent *Interactor)
 {
     Super::OnInteractorLost(Interactor);
-    Indicator->OnInteractionStateChanged(EInteractionState::Enddetection);
+    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Enddetection);
 }
 bool UInteractablePoint::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
 {
     if (InputMode == EInteractionInputMode::Hold || InputMode == EInteractionInputMode::ChargedRelease)
     {
-        Indicator->OnInteractionProgress(FMath::Clamp(InputValue.GetElapsedTime() / HoldTimeThreshold, 0.f, 1.f));
+        const float progress = FMath::Clamp(InputValue.GetElapsedTime() / HoldTimeThreshold, 0.f, 1.f);
+        IInteractionIndicator::Execute_OnInteractionProgress(Indicator.GetObject(),progress);
     }
     return Super::ShouldHandleInput_Implementation(InputValue);
 }
@@ -117,29 +125,40 @@ void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
     widgetComp->SetBlendMode(WidgetBlendMode);
     widgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-    if (IndicatorClass)
+    static const UClass *InteractionIndicatorClass = UInteractionIndicator::StaticClass();
+    auto MakeInteractionIndicator = [](UObject *Object) -> TScriptInterface<IInteractionIndicator>
+    {
+        TScriptInterface<IInteractionIndicator> Result = nullptr;
+
+        if (!Object)
+        {
+            return Result;
+        }
+
+        if (Object->GetClass()->ImplementsInterface(InteractionIndicatorClass))
+        {
+            Result.SetObject(Object);
+            Result.SetInterface(Cast<IInteractionIndicator>(Object));
+        }
+
+        return Result;
+    };
+
+    UUserWidget *Widget = CreateWidget<UUserWidget>(GetWorld(), IndicatorClass);
+    Indicator = MakeInteractionIndicator(Widget);
+    if (Indicator)
     {
         // widgetComp->SetWidgetClass(IndicatorClass);
         // widgetComp->InitWidget();
-        Indicator = CreateWidget<UInteractionIndicatorWidget>(GetWorld(), IndicatorClass);
-        if (Indicator != nullptr)
+        widgetComp->SetWidget(Widget);
+        Indicator->InitializeIndicator(this);
+    }
+    else
+    {
+        LOG_ERROR("IndicatorClass does not implement UInteractionIndicator")
+        if (GEngine)
         {
-            widgetComp->SetWidget(Indicator);
-            Indicator->InitializeIndicator(this);
-        }
-        else
-        {
-            const FString ErrorMsg = FString::Printf(
-                TEXT("[%s] Widget class '%s' should child of UInteractionIndicatorWidget!"),
-                *GetName(),
-                *IndicatorClass->GetName());
-
-            UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
-
-            if (GEngine)
-            {
-                GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, ErrorMsg);
-            }
+            GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("IndicatorClass does not implement UInteractionIndicator"));
         }
     }
 }
@@ -155,3 +174,17 @@ void UInteractablePoint::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
     Super::EndPlay(EndPlayReason);
 }
+
+#if WITH_EDITOR
+void UInteractablePoint::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    if (IndicatorClass &&
+        !IndicatorClass->ImplementsInterface(UInteractionIndicator::StaticClass()))
+    {
+        UE_LOG(LogTemp, Error, TEXT("IndicatorClass must implement UInteractionIndicator"));
+        IndicatorClass = nullptr;
+    }
+}
+#endif
