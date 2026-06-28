@@ -60,34 +60,52 @@ void UInteractablePoint::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 void UInteractablePoint::Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance)
 {
     Super::Interact_Implementation(Provider, Hit, Instance);
-    IInteractionIndicator::Execute_OnInteractionCompleted(Indicator.GetObject());
+    if (UObject *CurrentIndicator = Indicator.GetObject())
+    {
+        IInteractionIndicator::Execute_OnInteractionCompleted(CurrentIndicator);
+    }
 }
 void UInteractablePoint::Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit)
 {
     Super::Hover_Implementation(Provider, Hit);
-    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Beginhover);
+    if (UObject *CurrentIndicator = Indicator.GetObject())
+    {
+        IInteractionIndicator::Execute_OnInteractionStateChanged(CurrentIndicator, EInteractionState::Beginhover);
+    }
 }
 void UInteractablePoint::UnHover_Implementation(UInteractionComponent *Provider)
 {
     Super::UnHover_Implementation(Provider);
-    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Endhover);
+    if (UObject *CurrentIndicator = Indicator.GetObject())
+    {
+        IInteractionIndicator::Execute_OnInteractionStateChanged(CurrentIndicator, EInteractionState::Endhover);
+    }
 }
 void UInteractablePoint::OnInteractorDetected(UInteractionComponent *Interactor)
 {
     Super::OnInteractorDetected(Interactor);
-    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Begindetection);
+    if (UObject *CurrentIndicator = Indicator.GetObject())
+    {
+        IInteractionIndicator::Execute_OnInteractionStateChanged(CurrentIndicator, EInteractionState::Begindetection);
+    }
 }
 void UInteractablePoint::OnInteractorLost(UInteractionComponent *Interactor)
 {
     Super::OnInteractorLost(Interactor);
-    IInteractionIndicator::Execute_OnInteractionStateChanged(Indicator.GetObject(),EInteractionState::Enddetection);
+    if (UObject *CurrentIndicator = Indicator.GetObject())
+    {
+        IInteractionIndicator::Execute_OnInteractionStateChanged(CurrentIndicator, EInteractionState::Enddetection);
+    }
 }
 bool UInteractablePoint::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
 {
     if (InputMode == EInteractionInputMode::Hold || InputMode == EInteractionInputMode::ChargedRelease)
     {
         const float progress = FMath::Clamp(InputValue.GetElapsedTime() / HoldTimeThreshold, 0.f, 1.f);
-        IInteractionIndicator::Execute_OnInteractionProgress(Indicator.GetObject(),progress);
+        if (UObject *CurrentIndicator = Indicator.GetObject())
+        {
+            IInteractionIndicator::Execute_OnInteractionProgress(CurrentIndicator, progress);
+        }
     }
     return Super::ShouldHandleInput_Implementation(InputValue);
 }
@@ -151,7 +169,10 @@ void UInteractablePoint::ApplyWidgetSettings(UWidgetComponent *widgetComp)
         // widgetComp->SetWidgetClass(IndicatorClass);
         // widgetComp->InitWidget();
         widgetComp->SetWidget(Widget);
-        IInteractionIndicator::Execute_InitializeIndicator(Indicator.GetObject(),this);
+        if (UObject *CurrentIndicator = Indicator.GetObject())
+        {
+            IInteractionIndicator::Execute_InitializeIndicator(CurrentIndicator, this);
+        }
     }
     else
     {
