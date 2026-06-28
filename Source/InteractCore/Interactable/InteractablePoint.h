@@ -49,7 +49,7 @@ private:
 	bool bIsImplememtWidgetSettings = false;
 	UPROPERTY()
 	bool bCanSee = false; // that means the component can see target object detected by zone
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true", MustImplement = "/Script/InteractCore.InteractionIndicator"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (Tooltip = "This widget should implement InteractionIndicator interface", AllowPrivateAccess = "true", MustImplement = "/Script/InteractCore.InteractionIndicator"))
 	TSubclassOf<UUserWidget> IndicatorClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|WidgetIndicator", meta = (AllowPrivateAccess = "true"))
 	EWidgetSpace WidgetSpace = EWidgetSpace::Screen;
