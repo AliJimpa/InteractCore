@@ -18,16 +18,16 @@ class INTERACTCORE_API UInteractionIndicatorWidget : public UUserWidget, public 
 	GENERATED_BODY()
 protected:
 	// Implement IInteractionIndicator Interface
-	virtual void InitializeIndicator_Implementation(UInteractableComponent *InOwner) override { OwnerInteractable = InOwner; }
+	virtual void InitializeIndicator_Implementation(UObject *InOwner) override { OwnerInteractable = InOwner; }
 	virtual void OnInteractionStateChanged_Implementation(EInteractionState NewState) override {}
 	virtual void OnInteractionProgress_Implementation(float Progress) override {}
 	virtual void OnInteractionCompleted_Implementation() override {}
 
 private:
 	UPROPERTY()
-	UInteractableComponent *OwnerInteractable = nullptr;
+	UObject *OwnerInteractable = nullptr;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Interaction|Getter", meta = (DisplayName = "Get Owner Interactable"))
-	UInteractableComponent *GetOwnerInteractable() const { return OwnerInteractable; }
+	UObject *GetOwnerInteractable() const { return OwnerInteractable; }
 };

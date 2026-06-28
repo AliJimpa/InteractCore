@@ -27,7 +27,7 @@ class INTERACTCORE_API IInteractionIndicator
 
 public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "InteractionIndicator|Events", meta = (ToolTip = "Initializes the interaction indicator with its owning interactable component."))
-    void InitializeIndicator(UInteractableComponent *InOwner);
+    void InitializeIndicator(UObject *InOwner);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "InteractionIndicator|Events", meta = (ToolTip = "Called whenever the interaction state changes."))
     void OnInteractionStateChanged(EInteractionState NewState);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "InteractionIndicator|Events", meta = (ToolTip = "Called to update the current interaction progress."))
