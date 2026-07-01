@@ -1,10 +1,22 @@
 # InteractCore
 
-![InteractCore](https://github.com/AliJimpa/InteractCore/blob/main/Resources/Icon128.png)
+<p align="center">
+  <img src="Resources/Icon128.png" alt="InteractCore Icon" />
+</p>
 
-**InteractCore** is a lightweight, extensible interaction framework for Unreal Engine. It gives you a ready-to-use system for hovering, detecting, and interacting with objects in first-person, third-person, isometric/top-down, and proximity-based games — built entirely on Unreal's **Enhanced Input** system and network-ready out of the box.
+<p align="center">
+  <b>A minimal, modular Interaction framework for Unreal Engine</b><br/>
+  It gives you a ready-to-use system for hovering, detecting, and interacting with objects in first-person, third-person, isometric/top-down, and proximity-based games — built entirely on Unreal's **Enhanced Input** system and network-ready out of the box.
+</p>
 
-## Concept
+<p align="center">
+  <img alt="Unreal Engine" src="https://img.shields.io/badge/Unreal%20Engine-5.6%2B-313131?logo=unrealengine" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Runtime%20Plugin-blue" />
+</p>
+
+---
+## Overview
 
 InteractCore is built around one simple idea:
 
