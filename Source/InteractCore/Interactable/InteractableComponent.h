@@ -30,7 +30,7 @@ enum class EInteractionUsageMode : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionEvent, UInteractionComponent *, Provider);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInputInteractionEvent, UInteractionComponent *, Provider, const FInputActionInstance &, InputInstance);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInputInteractionEvent, UInteractionComponent *, Provider, const FInputActionInstance &, Input);
 
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Base class for all Interactable component."))
 class INTERACTCORE_API UInteractableComponent : public USphereComponent, public IInteractable
