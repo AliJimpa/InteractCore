@@ -55,10 +55,10 @@ bool UCameraInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
         if (bDrawDebugTrace)
         {
             const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
-            DrawDebugLine(World, Start, End, LineColor, false, 1.f, 0, 1.f);
+            DrawDebugLine(World, Start, End, LineColor, false, DebugDuration, 0, 1.f);
             if (bHit)
             {
-                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.5f);
+                DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, DebugDuration);
             }
         }
 #endif
@@ -81,10 +81,10 @@ bool UCameraInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
             if (bDrawDebugTrace)
             {
                 const FColor LineColor = bHit ? DebugHitColor : DebugNoHitColor;
-                DrawDebugSphere(World, End, Radius, 16, LineColor, false, 1.f, 0, 1.5f);
+                DrawDebugSphere(World, End, Radius, 16, LineColor, false, DebugDuration, 0, 1.5f);
                 if (bHit)
                 {
-                    DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, 1.5f);
+                    DrawDebugPoint(World, OutHit.ImpactPoint, 10.f, LineColor, false, DebugDuration);
                 }
             }
 #endif

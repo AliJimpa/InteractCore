@@ -71,4 +71,6 @@ protected:
 	FColor DebugHitColor = FColor::Green;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
 	FColor DebugNoHitColor = FColor::Red;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Debug")
+	float DebugDuration = 1.5f;
 };
