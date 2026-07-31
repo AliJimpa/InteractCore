@@ -31,6 +31,8 @@ enum class EInteractionSearchMode : uint8
 		ToolTip = "Checks the Actor first. If the Actor does not implement the interface, searches Components for a valid implementation.")
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionEvent, UObject *, Target);
+
 // InteractionComponent (Abstract Base Class)
 /**
  * @class UInteractionComponent
@@ -73,6 +75,14 @@ protected:
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionEvent OnHoverBegin;
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionEvent OnHoverEnd;
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionEvent OnInteract;
 
 private:
 	UPROPERTY()

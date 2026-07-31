@@ -113,6 +113,7 @@ void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInter
 	if (UObject *CurrentObject = CurrentInteractable.GetObject())
 	{
 		IInteractable::Execute_UnHover(CurrentObject, this);
+		OnHoverEnd.Broadcast(CurrentObject);
 		// LOG_WARNING("UnHover");
 	}
 
@@ -124,6 +125,7 @@ void UInteractionComponent::SetCurrentInteractable(const TScriptInterface<IInter
 		{
 			CurrentInteractable = NewInteractable;
 			IInteractable::Execute_Hover(CurrentInteractable.GetObject(), this, HitResult);
+			OnHoverBegin.Broadcast(NewObject);
 			// LOG_WARNING("Hover");
 		}
 	}
@@ -270,6 +272,7 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 			if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
 			{
 				IInteractable::Execute_Interact(CurrentObject, this, CurrentHit, Instance);
+				OnInteract.Broadcast(CurrentObject);
 			}
 		}
 	}

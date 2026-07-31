@@ -29,8 +29,8 @@ enum class EInteractionUsageMode : uint8
 	Cooldown UMETA(DisplayName = "Cooldown")
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionEvent, UInteractionComponent *, Provider);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInputInteractionEvent, UInteractionComponent *, Provider, const FInputActionInstance &, Input);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractableEvent, UInteractionComponent *, Provider);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInputInteractableEvent, UInteractionComponent *, Provider, const FInputActionInstance &, Input);
 
 UCLASS(Abstract, Blueprintable, ClassGroup = (InteractCore), meta = (Tooltip = "Base class for all Interactable component."))
 class INTERACTCORE_API UInteractableComponent : public USphereComponent, public IInteractable
@@ -60,12 +60,12 @@ private:
 	mutable float LastPressTime = -1000.f;
 
 public:
-	UPROPERTY(BlueprintAssignable, Category = "Hover Events")
-	FOnInteractionEvent OnHoverBegin;
-	UPROPERTY(BlueprintAssignable, Category = "UnHover Events")
-	FOnInteractionEvent OnHoverEnd;
-	UPROPERTY(BlueprintAssignable, Category = "Interact Events")
-	FOnInputInteractionEvent OnInteract;
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractableEvent OnHoverBegin;
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractableEvent OnHoverEnd;
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInputInteractableEvent OnInteract;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
