@@ -206,7 +206,7 @@ InteractCore/
 ├── Source/InteractCore/
 │   ├── Interaction/         # UInteractionComponent and its derived classes
 │   ├── Interactable/        # UInteractableComponent and its derived classes
-│   ├── Interface/            # IInteractable and IInteractionIndicator
+│   ├── Interface/            # IInteractable
 │   ├── Widget/                # UInteractionIndicatorWidget base
 │   ├── Engine/                # Debug helpers
 │   └── Module/                # Plugin module entry point
