@@ -51,78 +51,12 @@ void UInteractableComponent::UnHover_Implementation(UInteractionComponent *Provi
     OnHoverEnd.Broadcast(Provider);
     // LOG("UNHOVER");
 }
-bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
+bool UInteractableComponent::CanInteract_Implementation() const
 {
-    const ETriggerEvent TriggerEvent = InputValue.GetTriggerEvent();
-
-    // Check for detect pending
-    if (TriggerEvent == ETriggerEvent::Started)
-    {
-        bInteractionPending = true;
-    }
-    else if (TriggerEvent == ETriggerEvent::Completed ||
-             TriggerEvent == ETriggerEvent::Canceled)
-    {
-        bInteractionPending = false;
-    }
-
     // Cehck if once or colldown
     if (!IsAllowedInteraction())
         return false;
 
-    switch (InputMode)
-    {
-    case EInteractionInputMode::Press:
-    {
-        return TriggerEvent == ETriggerEvent::Started;
-    }
-    case EInteractionInputMode::Release:
-    {
-        return TriggerEvent == ETriggerEvent::Completed;
-    }
-    case EInteractionInputMode::Tap:
-    {
-        // Best if Input Action has a Tap trigger configured
-        return TriggerEvent == ETriggerEvent::Triggered;
-    }
-    case EInteractionInputMode::Hold:
-    {
-        // If using Hold Trigger in Input Action, Triggered is enough.
-        // Otherwise use elapsed time.
-        return (TriggerEvent == ETriggerEvent::Ongoing || TriggerEvent == ETriggerEvent::Triggered) && InputValue.GetElapsedTime() >= HoldTimeThreshold;
-    }
-    case EInteractionInputMode::ChargedRelease:
-    {
-        // If using Hold Trigger in Input Action, Triggered is enough.
-        // Otherwise use elapsed time.
-        return TriggerEvent == ETriggerEvent::Triggered && InputValue.GetElapsedTime() >= HoldTimeThreshold;
-    }
-    case EInteractionInputMode::DoubleClick:
-    {
-        const UWorld *World = GetWorld();
-        if (!World || TriggerEvent != ETriggerEvent::Started)
-        {
-            return false;
-        }
-
-        const float CurrentTime = World->GetTimeSeconds();
-        const bool bIsDoubleClick = (CurrentTime - LastPressTime) <= DoubleTapInterval;
-        LastPressTime = CurrentTime;
-        return bIsDoubleClick;
-    }
-    case EInteractionInputMode::Any:
-    {
-        return TriggerEvent == ETriggerEvent::Started || TriggerEvent == ETriggerEvent::Triggered || TriggerEvent == ETriggerEvent::Completed || TriggerEvent == ETriggerEvent::Ongoing || TriggerEvent == ETriggerEvent::Canceled;
-    }
-    default:
-    {
-        return false;
-    }
-    }
-}
-
-bool UInteractableComponent::CanInteract() const
-{
     switch (InteractMode)
     {
     case EInteractionUsageMode::Once:
@@ -151,6 +85,71 @@ bool UInteractableComponent::CanInteract() const
     default:
     {
         return true;
+    }
+    }
+}
+bool UInteractableComponent::ShouldHandleInput_Implementation(const FInputActionInstance &InputAction) const
+{
+    const ETriggerEvent TriggerEvent = InputAction.GetTriggerEvent();
+
+    // Check for detect pending
+    if (TriggerEvent == ETriggerEvent::Started)
+    {
+        bInteractionPending = true;
+    }
+    else if (TriggerEvent == ETriggerEvent::Completed ||
+             TriggerEvent == ETriggerEvent::Canceled)
+    {
+        bInteractionPending = false;
+    }
+
+    switch (InputMode)
+    {
+    case EInteractionInputMode::Press:
+    {
+        return TriggerEvent == ETriggerEvent::Started;
+    }
+    case EInteractionInputMode::Release:
+    {
+        return TriggerEvent == ETriggerEvent::Completed;
+    }
+    case EInteractionInputMode::Tap:
+    {
+        // Best if Input Action has a Tap trigger configured
+        return TriggerEvent == ETriggerEvent::Triggered;
+    }
+    case EInteractionInputMode::Hold:
+    {
+        // If using Hold Trigger in Input Action, Triggered is enough.
+        // Otherwise use elapsed time.
+        return (TriggerEvent == ETriggerEvent::Ongoing || TriggerEvent == ETriggerEvent::Triggered) && InputAction.GetElapsedTime() >= HoldTimeThreshold;
+    }
+    case EInteractionInputMode::ChargedRelease:
+    {
+        // If using Hold Trigger in Input Action, Triggered is enough.
+        // Otherwise use elapsed time.
+        return TriggerEvent == ETriggerEvent::Triggered && InputAction.GetElapsedTime() >= HoldTimeThreshold;
+    }
+    case EInteractionInputMode::DoubleClick:
+    {
+        const UWorld *World = GetWorld();
+        if (!World || TriggerEvent != ETriggerEvent::Started)
+        {
+            return false;
+        }
+
+        const float CurrentTime = World->GetTimeSeconds();
+        const bool bIsDoubleClick = (CurrentTime - LastPressTime) <= DoubleTapInterval;
+        LastPressTime = CurrentTime;
+        return bIsDoubleClick;
+    }
+    case EInteractionInputMode::Any:
+    {
+        return TriggerEvent == ETriggerEvent::Started || TriggerEvent == ETriggerEvent::Triggered || TriggerEvent == ETriggerEvent::Completed || TriggerEvent == ETriggerEvent::Ongoing || TriggerEvent == ETriggerEvent::Canceled;
+    }
+    default:
+    {
+        return false;
     }
     }
 }

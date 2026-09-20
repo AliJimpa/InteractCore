@@ -23,6 +23,8 @@ public:
     void UnHover(UInteractionComponent *Provider);
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Events", meta = (ToolTip = "Called when an interaction is performed on this object."))
     void Interact(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance);
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Input", meta = (ToolTip = "Determines whether this interactable should handle the given input action."))
-    bool ShouldHandleInput(const FInputActionInstance &InputValue) const;
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permission", meta = (ToolTip = "Checks whether this interactable is currently available for interaction."))
+    bool CanInteract() const;
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interactable|Permission", meta = (ToolTip = "Checks whether this interactable should respond to the given input action."))
+    bool ShouldHandleInput(const FInputActionInstance &InputAction) const;
 };

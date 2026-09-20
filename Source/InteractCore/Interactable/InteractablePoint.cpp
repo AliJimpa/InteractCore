@@ -90,18 +90,18 @@ void UInteractablePoint::OnInteractorLost(UInteractionComponent *Interactor)
         Indicator->OnInteractionStateChanged(EInteractionState::Enddetection);
     }
 }
-bool UInteractablePoint::ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const
+bool UInteractablePoint::ShouldHandleInput_Implementation(const FInputActionInstance &InputAction) const
 {
     if (InputMode == EInteractionInputMode::Hold || InputMode == EInteractionInputMode::ChargedRelease)
     {
-        const float progress = FMath::Clamp(InputValue.GetElapsedTime() / HoldTimeThreshold, 0.f, 1.f);
+        const float progress = FMath::Clamp(InputAction.GetElapsedTime() / HoldTimeThreshold, 0.f, 1.f);
 
         if (Indicator != nullptr)
         {
             Indicator->OnInteractionProgress(progress);
         }
     }
-    return Super::ShouldHandleInput_Implementation(InputValue);
+    return Super::ShouldHandleInput_Implementation(InputAction);
 }
 
 bool UInteractablePoint::CheckLineOfSight(UInteractionComponent *detectedObj) const

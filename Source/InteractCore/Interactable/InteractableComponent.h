@@ -47,10 +47,8 @@ protected:
 	virtual void Interact_Implementation(UInteractionComponent *Provider, const FHitResult &Hit, const FInputActionInstance &Instance) override;
 	virtual void Hover_Implementation(UInteractionComponent *Provider, const FHitResult &Hit) override;
 	virtual void UnHover_Implementation(UInteractionComponent *Provider) override;
-	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputValue) const override;
-
-private:
-	bool CanInteract() const;
+	virtual bool CanInteract_Implementation() const override;
+	virtual bool ShouldHandleInput_Implementation(const FInputActionInstance &InputAction) const override;
 
 private:
 	bool bIsHovered = false;
@@ -111,6 +109,6 @@ protected:
 	bool IsAllowedInteraction() const;
 	virtual bool IsAllowedInteraction_Implementation() const
 	{
-		return EnableInteraction && CanInteract();
+		return EnableInteraction;
 	}
 };

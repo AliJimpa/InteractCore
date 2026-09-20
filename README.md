@@ -124,7 +124,6 @@ classDiagram
         +bool IsInteractionPending()
         +void SetEnableInteraction(bool Enable)
         +void ResetInteraction()
-        +bool IsAllowedInteraction()
     }
     class UInteractableDetection{
         +FOnInteractionEvent OnDetectionBegin
@@ -165,6 +164,7 @@ The contract every interactable object implements:
 - `Hover(Provider, Hit)` — called when an interaction provider starts hovering the object.
 - `UnHover(Provider)` — called when it stops hovering.
 - `Interact(Provider, Hit, InputInstance)` — called when the object is actually interacted with.
+- `CanInteract()` - checks whether this interactable is currently available for interaction.
 - `ShouldHandleInput(InputValue) const` — decides whether a given input action should count toward interaction (used to support press/hold/tap/double-click modes).
 
 ## Features

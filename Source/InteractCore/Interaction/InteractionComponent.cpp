@@ -269,10 +269,13 @@ void UInteractionComponent::OnInteractInput(const FInputActionInstance &Instance
 	{
 		if (CanInteract(CurrentObject))
 		{
-			if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
+			if (IInteractable::Execute_CanInteract(CurrentObject))
 			{
-				IInteractable::Execute_Interact(CurrentObject, this, CurrentHit, Instance);
-				OnInteract.Broadcast(CurrentObject);
+				if (IInteractable::Execute_ShouldHandleInput(CurrentObject, Instance))
+				{
+					IInteractable::Execute_Interact(CurrentObject, this, CurrentHit, Instance);
+					OnInteract.Broadcast(CurrentObject);
+				}
 			}
 		}
 	}
