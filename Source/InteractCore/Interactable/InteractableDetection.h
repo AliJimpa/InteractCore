@@ -29,9 +29,9 @@ protected:
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnInteractionEvent OnDetectionBegin;
+	FOnInteractableEvent OnDetectionBegin;
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnInteractionEvent OnDetectionEnd;
+	FOnInteractableEvent OnDetectionEnd;
 
 protected:
 	UPROPERTY(VisibleAnywhere, AdvancedDisplay, Category = "Interaction", meta = (BlueprintProtected))
