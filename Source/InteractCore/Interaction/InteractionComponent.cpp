@@ -48,7 +48,8 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
-	UpdateInteraction();
+	if (IsActive())
+		UpdateInteraction();
 }
 
 // Functions
@@ -245,7 +246,7 @@ AController *UInteractionComponent::ResolveControllerFromOwnership() const
 		return Controller;
 	}
 
-	return nullptr;
+	return K2_ResolveController();
 }
 void UInteractionComponent::BindInteractionInput(UEnhancedInputComponent *EIC)
 {

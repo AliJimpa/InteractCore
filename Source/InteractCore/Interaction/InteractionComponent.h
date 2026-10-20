@@ -147,6 +147,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Interaction|Setter")
 	void SetInteractionActive(bool bEnable);
 
+protected:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction|Override", meta = (DisplayName = "ResolveController"))
+	AController* K2_ResolveController() const;
+
 private:
 	UFUNCTION(BlueprintCallable, Category = "Interaction|Function", meta = (AllowPrivateAccess = "true"))
 	void OnInteractInput(const FInputActionInstance &Instance);

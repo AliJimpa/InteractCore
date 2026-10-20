@@ -8,10 +8,6 @@ void UMouseInteraction::OnControllerReady(AController *InController)
         return;
 
     PC = Cast<APlayerController>(InController);
-    if (PC == nullptr)
-    {
-        PC = GetWorld()->GetFirstPlayerController();
-    }
 }
 
 bool UMouseInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
@@ -21,9 +17,15 @@ bool UMouseInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
     UWorld *World = GetWorld();
     if (!World)
     {
+        LOG_WARNING("World is not valid");
         return false;
     }
-    
+    if (!PC)
+    {
+        LOG_WARNING("PlayerController is not valid");
+        return false;
+    }
+
     float MouseX = 0.f;
     float MouseY = 0.f;
     if (!PC->GetMousePosition(MouseX, MouseY))
@@ -41,15 +43,12 @@ bool UMouseInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
     const FVector TraceStart = WorldLocation;
     const FVector TraceEnd = TraceStart + (WorldDirection * TraceDistance);
 
-    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MouseTrace), bTraceComplex);
-    QueryParams.AddIgnoredActor(GetOwner());
-
     const bool bHit = World->LineTraceSingleByChannel(
         OutHit,
         TraceStart,
         TraceEnd,
         TraceChannel,
-        QueryParams);
+        BuildQueryParams());
 
     if (bDrawDebug)
     {
@@ -77,4 +76,11 @@ bool UMouseInteraction::TryGetDetectedFocused(FHitResult &OutHit) const
     }
 
     return bHit;
+}
+
+FCollisionQueryParams UMouseInteraction::BuildQueryParams() const
+{
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(MouseTrace), bTraceComplex);
+    Params.AddIgnoredActors(GetIgnoredActors()); // calls the BP override if there is one
+    return Params;
 }

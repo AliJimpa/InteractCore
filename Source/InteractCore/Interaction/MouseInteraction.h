@@ -30,6 +30,22 @@ protected:
 	virtual bool TryGetDetectedFocused(FHitResult &OutHit) const override;
 
 private:
+	FCollisionQueryParams BuildQueryParams() const;
+
+protected:
+	UFUNCTION(BlueprintPure, BlueprintNativeEvent, Category = "Interaction|Override")
+	TArray<AActor *> GetIgnoredActors() const;
+	virtual TArray<AActor *> GetIgnoredActors_Implementation() const
+	{
+		TArray<AActor *> Ignored;
+		if (AActor *Owner = GetOwner())
+		{
+			Ignored.Add(Owner);
+		}
+		return Ignored;
+	}
+
+private:
 	UPROPERTY()
 	APlayerController *PC;
 
